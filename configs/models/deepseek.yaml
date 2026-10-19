@@ -1,0 +1,14 @@
+# DeepSeek via LiteLLM. Used for the host agent and for the runtime roles.
+# TODO(M0): confirm the current model id and prices on DeepSeek's official API docs
+# before the first run; LiteLLM's "deepseek/" prefix reads DEEPSEEK_API_KEY.
+host:
+  model_name: "deepseek/deepseek-chat"
+  model_kwargs:
+    drop_params: true
+    temperature: 0.0
+  cost_tracking: "ignore_errors"   # until LiteLLM's price table has the model
+
+runtime:
+  model_name: "deepseek/deepseek-chat"
+  model_kwargs:
+    temperature: 0.0

@@ -1,0 +1,7 @@
+# Plain mini-swe-agent, full history. Reference point for every other configuration.
+name: baseline
+agent: default
+models: configs/models/deepseek.yaml
+agent_config: swebench          # mini-swe-agent's builtin benchmarks/swebench.yaml
+step_limit: 250
+cost_limit: 3.0

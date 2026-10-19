@@ -1,0 +1,11 @@
+# Full CarryOn with coding Grounder checks (tests, compile, git diff).
+name: carryon_full
+agent: carryon
+models: configs/models/deepseek.yaml
+agent_config: swebench
+step_limit: 250
+cost_limit: 3.0
+runtime:
+  trigger_tokens: 6000           # paper Appendix A.3 (OSWorld setting)
+  max_requests_per_scan: 4       # paper Table 7
+  use_code_checks: true

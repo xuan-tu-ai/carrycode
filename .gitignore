@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Secrets
+.env
+
+# Run outputs (large; publish summaries, not raw trajectories)
+runs/
+*.traj.json
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

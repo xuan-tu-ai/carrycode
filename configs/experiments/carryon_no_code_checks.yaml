@@ -1,0 +1,12 @@
+# Ablation: CarryOn with only existence/diff checks, no test or compile checks.
+# Measures the contribution of the content-level Grounder.
+name: carryon_no_code_checks
+agent: carryon
+models: configs/models/deepseek.yaml
+agent_config: swebench
+step_limit: 250
+cost_limit: 3.0
+runtime:
+  trigger_tokens: 6000
+  max_requests_per_scan: 4
+  use_code_checks: false
