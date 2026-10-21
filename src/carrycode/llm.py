@@ -29,20 +29,21 @@ class RoleLLM:
         self.max_retries = max_retries
         self.usage = RoleUsage()
 
-    def complete_json(self, system: str, user: str, schema: type[T]) -> T | None:
-        """Ask for a JSON object matching `schema`. Returns None after repeated invalid output."""
+    def _call(self, messages: list[dict]) -> str:
+        """One model call. Returns the reply text. Override in tests."""
         import litellm  # imported lazily so offline tests do not need it
 
+        response = litellm.completion(
+            model=self.model_name, messages=messages, response_format={"type": "json_object"}, **self.model_kwargs
+        )
+        self._record(response, litellm)
+        return response.choices[0].message.content or ""
+
+    def complete_json(self, system: str, user: str, schema: type[T]) -> T | None:
+        """Ask for a JSON object matching `schema`. Returns None after repeated invalid output."""
         messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
         for _ in range(self.max_retries + 1):
-            response = litellm.completion(
-                model=self.model_name,
-                messages=messages,
-                response_format={"type": "json_object"},
-                **self.model_kwargs,
-            )
-            self._record(response, litellm)
-            text = response.choices[0].message.content or ""
+            text = self._call(messages)
             try:
                 return schema.model_validate(json.loads(text))
             except (json.JSONDecodeError, ValidationError) as e:
