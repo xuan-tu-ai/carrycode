@@ -36,6 +36,7 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+extend-exclude = ["docs"]  # ruff also formats code blocks in Markdown; task specs hold pseudo-code
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

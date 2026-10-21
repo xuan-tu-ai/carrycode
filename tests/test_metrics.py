@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from carrycode.metrics import TaskUsage, trajectory_usage
 
 
@@ -85,3 +86,24 @@ def test_totals() -> None:
 
 def test_empty_traj() -> None:
     assert trajectory_usage({}) == TaskUsage()
+
+
+def test_null_fields_do_not_raise() -> None:
+    traj = {
+        "messages": [
+            {"role": "assistant", "extra": {"response": {"usage": None}}},
+            {"role": "assistant", "extra": None},
+        ],
+        "info": {"exit_status": None, "carryon": {"role_usage": {"tracker": None}, "fold_stats": None}},
+    }
+    usage = trajectory_usage(traj)
+    assert usage.host_input_tokens == 0
+    assert usage.exit_status == ""
+
+
+def test_format_error_response_is_counted() -> None:
+    # mini-swe-agent stores the billed response of an unparsable reply on a user-role message.
+    traj = {"messages": [_make_assistant(100, 10), {**_make_assistant(40, 4), "role": "user"}]}
+    usage = trajectory_usage(traj)
+    assert usage.host_input_tokens == 140
+    assert usage.host_output_tokens == 14
