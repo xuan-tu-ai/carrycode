@@ -1,5 +1,12 @@
 from carrycode.records import CarrierRecord, CarrierType, ExecutionContext
-from carrycode.view import build_view, estimate_tokens, render_checkpoint, safe_tail_start
+from carrycode.view import (
+    build_view,
+    estimate_tokens,
+    project_tail,
+    render_checkpoint,
+    safe_tail_start,
+    step_texts,
+)
 
 LOG = [
     {"role": "system", "content": "sys"},
@@ -38,3 +45,25 @@ def test_view_is_head_checkpoint_tail():
 
 def test_estimate_tokens_is_chars_over_four():
     assert estimate_tokens([{"role": "user", "content": "x" * 400}]) == 100
+
+
+def test_project_tail_numbers_steps_from_offset():
+    result = project_tail(LOG[2:], 2)
+    assert result.startswith("[step 2] assistant:")
+    assert "[step 3] tool: out1" in result
+    assert "[step 5] assistant: next" in result
+
+
+def test_project_tail_blocks_separated_by_blank_line():
+    assert project_tail(LOG[3:5], 3) == "[step 3] tool: out1\n\n[step 4] tool: out2"
+
+
+def test_project_tail_truncates_long_messages():
+    msg = [{"role": "user", "content": "a" * 5000}]
+    result = project_tail(msg, 0, max_chars=100)
+    assert "...[4900 chars cut]..." in result
+    assert len(result) < 200
+
+
+def test_step_texts_ignores_out_of_range():
+    assert step_texts(LOG[2:], 2, [1, 3, 99]) == {3: "out1"}
