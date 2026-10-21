@@ -12,7 +12,7 @@ from pathlib import Path
 import dotenv
 import typer
 
-from carrycode.config import REPO_ROOT, build_mswea_config, load_experiment, load_models
+from carrycode.config import REPO_ROOT, build_mswea_config, load_experiment, load_models, setup_provider
 from carrycode.swebench import load_instances, read_instance_ids, run_instance
 
 app = typer.Typer(add_completion=False)
@@ -31,6 +31,7 @@ def main(
 
     exp = load_experiment(experiment)
     models = load_models(exp.models)
+    setup_provider(models)
     cfg = build_mswea_config(exp, models)
 
     ids = read_instance_ids(instances)

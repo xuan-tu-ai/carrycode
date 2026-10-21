@@ -1,14 +1,21 @@
-# DeepSeek via LiteLLM. Used for the host agent and for the runtime roles.
-# TODO(M0): confirm the current model id and prices on DeepSeek's official API docs
-# before the first run; LiteLLM's "deepseek/" prefix reads DEEPSEEK_API_KEY.
+# DeepSeek V4.1 Flash via Token Harbor (OpenAI-compatible), used for the host agent and the runtime roles.
+# Confirmed 2026-10-21 with GET https://tokenharbor.ai/v1/models:
+#   deepseek-v4.1-flash:free  $0 (used while the account balance is $0)
+#   deepseek-v4.1-flash       $0.15/M input, $0.60/M output, $0.03/M cache read, 1M context, tool calls
+# Costs are tracked at the paid rates (litellm_registry.json) so cost_limit works and budgets stay realistic.
+api_key_env: TOKENHARBOR_API_KEY          # copied to OPENAI_API_KEY at startup (never written to trajectories)
+price_registry: configs/models/litellm_registry.json
+
 host:
-  model_name: "deepseek/deepseek-chat"
+  model_name: "openai/deepseek-v4.1-flash:free"
   model_kwargs:
+    api_base: "https://tokenharbor.ai/v1"
     drop_params: true
     temperature: 0.0
-  cost_tracking: "ignore_errors"   # until LiteLLM's price table has the model
+  cost_tracking: "default"
 
 runtime:
-  model_name: "deepseek/deepseek-chat"
+  model_name: "openai/deepseek-v4.1-flash:free"
   model_kwargs:
+    api_base: "https://tokenharbor.ai/v1"
     temperature: 0.0
