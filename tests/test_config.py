@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
+
 from carrycode.config import (
     ExperimentConfig,
     RuntimeSettings,
@@ -10,7 +12,6 @@ from carrycode.config import (
     load_experiment,
     load_models,
 )
-from pydantic import ValidationError
 
 EXPERIMENT_DIR = Path("configs/experiments")
 EXPERIMENT_FILES = sorted(EXPERIMENT_DIR.glob("*.yaml"))

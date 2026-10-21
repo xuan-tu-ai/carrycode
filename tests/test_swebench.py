@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from minisweagent.environments.local import LocalEnvironment
 from minisweagent.models.test_models import DeterministicModel, make_output
 
@@ -56,6 +57,10 @@ def test_run_instance_writes_traj_preds_and_usage(tmp_path: Path) -> None:
     TaskUsage.model_validate_json(usage_lines[0])
 
 
+def _failing_env(cfg: dict, instance: dict):
+    raise RuntimeError("no docker")
+
+
 def test_run_instance_records_environment_failure(tmp_path: Path) -> None:
     exp, models, cfg = _baseline()
     instance = {"instance_id": "repo__x-1", "problem_statement": "fix it"}
@@ -66,7 +71,7 @@ def test_run_instance_records_environment_failure(tmp_path: Path) -> None:
         cfg,
         tmp_path,
         model_factory=lambda _cfg: DeterministicModel(outputs=[]),
-        env_factory=lambda _cfg, _inst: (_ for _ in ()).throw(RuntimeError("no docker")),
+        env_factory=_failing_env,
     )
     assert usage.exit_status == "RuntimeError"
 
@@ -87,8 +92,6 @@ def test_load_instances_reports_missing_ids(monkeypatch) -> None:
     result = load_instances(["a"])
     assert len(result) == 1
     assert result[0]["instance_id"] == "a"
-
-    import pytest
 
     with pytest.raises(ValueError, match="b"):
         load_instances(["a", "b"])

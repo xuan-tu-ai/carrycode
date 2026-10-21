@@ -28,40 +28,42 @@ class TaskUsage(BaseModel):
 
 def trajectory_usage(traj: dict) -> TaskUsage:
     """Extract token, cost and fold counts from a saved trajectory dict."""
-    info = traj.get("info", {})
-    model_stats = info.get("model_stats", {})
+    info = traj.get("info") or {}
+    model_stats = info.get("model_stats") or {}
 
-    # Host tokens: sum over assistant messages.
+    # Host tokens: every message that carries a billed API response. This includes the
+    # user-role message mini-swe-agent stores when a reply fails to parse (FormatError).
     host_input = 0
     host_output = 0
-    for msg in traj.get("messages", []):
-        if msg.get("role") != "assistant":
+    for msg in traj.get("messages") or []:
+        response = (msg.get("extra") or {}).get("response")
+        if not isinstance(response, dict):
             continue
-        usage = msg.get("extra", {}).get("response", {}).get("usage", {})
-        host_input += usage.get("prompt_tokens", 0) or 0
-        host_output += usage.get("completion_tokens", 0) or 0
+        usage = response.get("usage") or {}
+        host_input += usage.get("prompt_tokens") or 0
+        host_output += usage.get("completion_tokens") or 0
 
     result = TaskUsage(
-        instance_id=traj.get("instance_id", ""),
-        exit_status=info.get("exit_status", ""),
-        host_calls=model_stats.get("api_calls", 0),
+        instance_id=traj.get("instance_id") or "",
+        exit_status=info.get("exit_status") or "",
+        host_calls=model_stats.get("api_calls") or 0,
         host_input_tokens=host_input,
         host_output_tokens=host_output,
-        host_cost=model_stats.get("instance_cost", 0.0),
+        host_cost=model_stats.get("instance_cost") or 0.0,
     )
 
     # Runtime section (written by T016).
     carryon = info.get("carryon")
     if isinstance(carryon, dict):
-        role_usage = carryon.get("role_usage", {})
+        role_usage = carryon.get("role_usage") or {}
         for role_name in ("tracker", "compiler"):
-            role = role_usage.get(role_name, {})
-            result.runtime_calls += role.get("calls", 0)
-            result.runtime_input_tokens += role.get("input_tokens", 0)
-            result.runtime_output_tokens += role.get("output_tokens", 0)
-            result.runtime_cost += role.get("cost", 0.0)
-        fold_stats = carryon.get("fold_stats", {})
-        result.folds_attempted = fold_stats.get("attempts", 0)
-        result.folds_committed = fold_stats.get("committed", 0)
+            role = role_usage.get(role_name) or {}
+            result.runtime_calls += role.get("calls") or 0
+            result.runtime_input_tokens += role.get("input_tokens") or 0
+            result.runtime_output_tokens += role.get("output_tokens") or 0
+            result.runtime_cost += role.get("cost") or 0.0
+        fold_stats = carryon.get("fold_stats") or {}
+        result.folds_attempted = fold_stats.get("attempts") or 0
+        result.folds_committed = fold_stats.get("committed") or 0
 
     return result
