@@ -17,9 +17,9 @@ Model choices changed after that plan was written; `decisions.md` is authoritati
 
 ## M0 checklist
 
-- [ ] `uv sync`, `uv run pytest` pass
-- [ ] Docker works without sudo
-- [ ] Confirm DeepSeek model id and price in `configs/models/deepseek.yaml`
+- [x] `uv sync`, `uv run pytest` pass
+- [x] Docker works without sudo
+- [x] Confirm DeepSeek model id and price in `configs/models/deepseek.yaml`
 - [ ] Implement `scripts/run_swebench.py` for the `baseline` config
 - [ ] Run 3 instances; run the official SWE-bench harness on `preds.json`
 - [ ] Record tokens and cost per task; update the budget estimate

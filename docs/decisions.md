@@ -2,6 +2,18 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-21: DeepSeek V4.1 Flash via Token Harbor
+
+- Provider: Token Harbor, OpenAI-compatible (`https://tokenharbor.ai/v1`); LiteLLM id `openai/<model>`.
+  Key in `TOKENHARBOR_API_KEY`, copied to `OPENAI_API_KEY` at startup so it never enters trajectories.
+- Model: `deepseek-v4.1-flash:free` for host and runtime while the account balance is $0. Paid
+  `deepseek-v4.1-flash` is $0.15/M input, $0.60/M output, $0.03/M cache read, 1M context, tool calls.
+- Costs are tracked at the paid rates (`configs/models/litellm_registry.json`) so `cost_limit` works and
+  budgets are realistic; reported costs for `:free` runs are nominal, not billed.
+- Pinned `litellm<1.106`: 1.106.0 (2026-10-18) imports the optional `mcp` package on every request with
+  `tools`, which breaks mini-swe-agent's tool calls.
+- Checked: plain, tool-call and JSON-mode requests succeed; Docker runs without sudo.
+
 ## 2026-10-19: initial setup
 
 - **Goal:** public harness for coding agents, not a paper reproduction. Solo project, a few hours

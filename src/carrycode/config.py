@@ -7,6 +7,8 @@ dict mini-swe-agent expects.
 
 from __future__ import annotations
 
+import json
+import os
 from pathlib import Path
 from typing import Any, Literal
 
@@ -28,6 +30,10 @@ class RoleModelConfig(BaseModel):
 class ModelsConfig(BaseModel):
     host: RoleModelConfig
     runtime: RoleModelConfig
+    api_key_env: str | None = None
+    """Env var holding the provider key; copied to OPENAI_API_KEY for OpenAI-compatible endpoints."""
+    price_registry: Path | None = None
+    """LiteLLM model-cost JSON for models missing from LiteLLM's price table."""
 
 
 class RuntimeSettings(BaseModel):
@@ -70,6 +76,22 @@ def load_models(path: Path) -> ModelsConfig:
     """Load and validate a models config YAML file."""
     data = yaml.safe_load(resolve_path(path).read_text())
     return ModelsConfig(**data)
+
+
+def setup_provider(models: ModelsConfig) -> None:
+    """Prepare the process for real model calls: provider key and model prices.
+
+    The key goes through the environment, not `model_kwargs`, so it never lands in saved trajectories.
+    """
+    if models.api_key_env:
+        key = os.environ.get(models.api_key_env)
+        if not key:
+            raise RuntimeError(f"{models.api_key_env} is not set (see .env.example)")
+        os.environ["OPENAI_API_KEY"] = key
+    if models.price_registry:
+        import litellm  # imported lazily so offline tests that never call this stay light
+
+        litellm.register_model(json.loads(resolve_path(models.price_registry).read_text()))
 
 
 def build_mswea_config(exp: ExperimentConfig, models: ModelsConfig) -> dict:
