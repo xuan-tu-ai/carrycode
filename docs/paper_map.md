@@ -20,6 +20,6 @@ Paper: arXiv:2610.18784v2 (14 Oct 2026).
 
 - Domain: SWE-bench coding tasks instead of OSWorld 2.0 / BrowseComp-Plus.
 - Grounder runs tests, compilation and `git diff` in the task container.
-- Host and runtime models are DeepSeek, not Claude Opus 4.7.
+- Host and runtime models are DeepSeek V4.1 Flash (via Token Harbor), not Claude Opus 4.7.
 - After a fold the live tail is empty. The paper's OSWorld adapter also kept recent
   screenshots and a pending assistant message (App. A.3); coding has no screenshots.
