@@ -5,13 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from carrycode.factory import build_agent
 from minisweagent.agents.default import DefaultAgent
 from minisweagent.environments.local import LocalEnvironment
 from minisweagent.models.test_models import DeterministicModel, make_output
 
 from carrycode.agent import SlidingWindowAgent
 from carrycode.config import build_mswea_config, load_experiment, load_models
+from carrycode.factory import build_agent
 
 
 def _load(name: str):
