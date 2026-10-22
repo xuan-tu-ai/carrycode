@@ -1,14 +1,12 @@
-"""Tracker: identifies reusable progress and requests compilation (§3.3, "Tracking Candidates").
+"""Tracker: identifies reusable progress and requests compilation (§3.3, "Tracking Candidates")."""
 
-TODO(M1): write the prompt in `prompts/tracker.md` and implement `Tracker.scan`.
-"""
-
-from __future__ import annotations
+import json
 
 from pydantic import BaseModel, Field
 
 from carrycode.llm import RoleLLM
-from carrycode.records import Candidate, ExecutionContext
+from carrycode.prompts import load_prompt
+from carrycode.records import Candidate, CarrierRecord, ExecutionContext
 
 
 class CheckSpec(BaseModel):
@@ -34,6 +32,50 @@ class TrackerOutput(BaseModel):
     resolved_obligation_ids: list[str] = Field(default_factory=list)
 
 
+def build_tracker_user_message(
+    task: str,
+    live_tail_text: str,
+    candidates: list[Candidate],
+    carriers: list[CarrierRecord],
+    ec: ExecutionContext,
+    max_requests: int,
+) -> str:
+    if carriers:
+        carriers_text = json.dumps(
+            [
+                c.model_dump(
+                    mode="json",
+                    include={"carrier_id", "version", "carrier_type", "subject", "summary"},
+                )
+                for c in carriers
+            ],
+            indent=2,
+        )
+    else:
+        carriers_text = "none"
+
+    if candidates:
+        candidates_text = json.dumps([c.model_dump(mode="json") for c in candidates], indent=2)
+    else:
+        candidates_text = "none"
+
+    open_obligations = ec.open_obligations()
+    if open_obligations:
+        obligations_text = "\n".join(f"- [{o.obligation_id}] {o.text}" for o in open_obligations)
+    else:
+        obligations_text = "none"
+
+    sections = [
+        f"# Task\n{task}",
+        f"# Current carriers\n{carriers_text}",
+        f"# Candidates\n{candidates_text}",
+        f"# Open obligations\n{obligations_text}",
+        f"# Limits\nReturn at most {max_requests} compile_requests.",
+        f"# Live tail\n{live_tail_text}",
+    ]
+    return "\n\n".join(sections)
+
+
 class Tracker:
     def __init__(self, llm: RoleLLM, max_requests_per_scan: int = 4) -> None:
         self.llm = llm
@@ -44,6 +86,20 @@ class Tracker:
         task: str,
         live_tail_text: str,
         candidates: list[Candidate],
+        carriers: list[CarrierRecord],
         ec: ExecutionContext,
     ) -> TrackerOutput:
-        raise NotImplementedError("M1: build the prompt and call self.llm.complete_json(..., TrackerOutput)")
+        """Implements §3.3 "Tracking Candidates": propose candidate updates and compile requests."""
+        user = build_tracker_user_message(task, live_tail_text, candidates, carriers, ec, self.max_requests_per_scan)
+        result = self.llm.complete_json(load_prompt("tracker"), user, TrackerOutput)
+        if result is None:
+            return TrackerOutput()
+        known = {c.candidate_id for c in candidates} | {c.candidate_id for c in result.candidate_updates}
+        requests = [r for r in result.compile_requests if r.candidate_id in known][: self.max_requests_per_scan]
+        open_ids = {o.obligation_id for o in ec.open_obligations()}
+        resolved = [i for i in result.resolved_obligation_ids if i in open_ids]
+        return TrackerOutput(
+            candidate_updates=result.candidate_updates,
+            compile_requests=requests,
+            resolved_obligation_ids=resolved,
+        )
