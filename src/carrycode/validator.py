@@ -42,6 +42,9 @@ def validate(output: CompilerOutput, package: EvidencePackage, store: CarrierSto
             current = store.get(cid)
             if current is None:
                 problems.append(f"{cid}: unknown carrier")
+            elif make_carrier_id(edit.carrier_type, edit.subject) != cid:
+                # Identity is stable across versions (App. A.1): an update may not move the carrier.
+                problems.append(f"{cid}: an update must keep the carrier's type and subject")
             elif edit.base_version != current.version:
                 problems.append(f"{cid}: stale base_version {edit.base_version} (current v{current.version})")
             elif (

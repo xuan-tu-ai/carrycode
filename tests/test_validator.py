@@ -142,3 +142,28 @@ def test_unauthorized_claim_steps_rejected():
 def test_compiler_output_uses_carrier_edit():
     schema = CompilerOutput.model_json_schema()
     assert "candidate_id" in schema["$defs"]["CarrierEdit"]["properties"]
+
+
+def test_update_cannot_change_identity():
+    pkg = make_pkg()
+    store = CarrierStore()
+    store.apply(store.materialize([E()], fold_number=1))
+    cid = "external_object:src/a.py"
+    for change in ({"subject": "src/b.py"}, {"carrier_type": CarrierType.INFORMATION_PRODUCT}):
+        problems = validate(
+            CompilerOutput(
+                carrier_edits=[E(carrier_id=cid, base_version=1, summary="new", **change)],
+                execution_context=ExecutionContext(),
+            ),
+            pkg,
+            store,
+        )
+        assert any("must keep the carrier's type and subject" in p for p in problems)
+
+
+def test_update_with_equivalent_subject_spelling_is_valid():
+    pkg = make_pkg()
+    store = CarrierStore()
+    store.apply(store.materialize([E()], fold_number=1))
+    edit = E(carrier_id="external_object:src/a.py", base_version=1, subject="/testbed/src/a.py", summary="new")
+    assert validate(CompilerOutput(carrier_edits=[edit], execution_context=ExecutionContext()), pkg, store) == []
