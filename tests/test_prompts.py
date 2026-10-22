@@ -163,3 +163,9 @@ def test_compiler_prompt_is_language_neutral():
     text = load_prompt("compiler")
     assert "Python repository" not in text
     assert "React" in text
+
+
+def test_compiler_prompt_marks_unobserved_edits():
+    text = load_prompt("compiler")
+    assert "UNVERIFIED:" in text
+    assert "edit result not observed" in text

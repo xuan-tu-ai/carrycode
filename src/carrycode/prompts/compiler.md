@@ -48,6 +48,15 @@ Ground all summaries and claims strictly in the provided evidence:
 - A command whose output is not displayed in the evidence is an unverified attempt with an unknown outcome.
 - Never assert that tests pass, builds succeed, or bugs are resolved unless the evidence explicitly demonstrates that result.
 - Preserve any nuance, limits, or uncertainty reflected in the source output.
+- **Unobserved edits.** If the last command that changed a file has no visible result in the tail (no output, no
+  later read of the file, no test or build run), you do not know what the file contains. Then, for that
+  `external_object` edit:
+  - start the `summary` with `UNVERIFIED:` and phrase it as an attempt ("ran sed to replace X with Y; result not
+    observed"), never as a finished change ("updated", "fixed");
+  - add the condition `"edit result not observed; re-read the file or rerun the tests before relying on it"`;
+  - keep the matching obligation open and make the next step in `immediate_continuation` the check that would
+    reveal the result.
+  If even the attempt is unclear, abstain instead.
 
 ## Execution Context
 
