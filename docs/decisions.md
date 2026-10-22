@@ -2,6 +2,14 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-22: Runtime prompts are language-neutral; Grounder checks stay Python for now
+
+- Tracker and Compiler prompts must not assume Python: carriers (files, findings, state) work for any stack,
+  e.g. a React site. Language-specific checks are labelled ("Python only").
+- The Grounder keeps `python_compiles` / `test_outcome` (pytest) through M3, since SWE-bench Verified is all
+  Python. M2 adds a generic `command_exit` check (any build/test command + expected exit code) and fixes
+  `git_diff_nonempty` for new (untracked) files.
+
 ## 2026-10-22: Compiler proposes CarrierEdits; runtime assigns versions
 
 - The Compiler returns `CarrierEdit`s (no version or fold fields). The runtime derives carrier ids from

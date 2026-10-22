@@ -86,3 +86,10 @@ def test_prompts_do_not_reuse_paper_wording():
         text = md_file.read_text(encoding="utf-8").lower()
         for phrase in forbidden:
             assert phrase not in text, f"Found forbidden phrase {phrase!r} in {md_file.name}"
+
+
+def test_tracker_prompt_is_language_neutral():
+    text = load_prompt("tracker")
+    assert "Python repository" not in text
+    assert "React" in text  # names a non-Python stack explicitly
+    assert "(Python only)" in text  # language-specific checks are labelled as such
