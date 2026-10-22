@@ -50,6 +50,22 @@ class CarrierRecord(BaseModel):
     committed_at_fold: int
 
 
+class CarrierEdit(BaseModel):
+    """A carrier change proposed by the Compiler (§3.3 Eq. 2, ΔA_t). The runtime turns it into a CarrierRecord."""
+
+    candidate_id: str
+    """The selected candidate this edit compiles."""
+    carrier_id: str | None = None
+    """None for a new carrier (the id is derived from type + subject); set to update an existing carrier."""
+    base_version: int | None = None
+    """For updates: the current version this edit was based on. Must be None for new carriers."""
+    carrier_type: CarrierType
+    subject: str
+    summary: str
+    conditions: list[str] = Field(default_factory=list)
+    claims: list[Claim] = Field(default_factory=list)
+
+
 class Candidate(BaseModel):
     """Progress that may become a carrier (Appendix A.1, "Candidate Records")."""
 

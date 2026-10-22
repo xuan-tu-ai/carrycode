@@ -2,6 +2,13 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-22: Compiler proposes CarrierEdits; runtime assigns versions
+
+- The Compiler returns `CarrierEdit`s (no version or fold fields). The runtime derives carrier ids from
+  type + normalized subject and assigns versions in `CarrierStore.materialize`.
+- Updates carry `base_version`; the validator rejects stale bases (compare-and-swap, paper §3.3).
+- Why: LLMs get bookkeeping fields wrong, which would turn into avoidable rejected folds.
+
 ## 2026-10-21: DeepSeek V4.1 Flash via Token Harbor
 
 - Provider: Token Harbor, OpenAI-compatible (`https://tokenharbor.ai/v1`); LiteLLM id `openai/<model>`.

@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from carrycode.grounder.base import CheckResult
 from carrycode.llm import RoleLLM
-from carrycode.records import Candidate, CarrierRecord, ExecutionContext
+from carrycode.records import Candidate, CarrierEdit, CarrierRecord, ExecutionContext
 
 
 class EvidencePackage(BaseModel):
@@ -25,7 +25,7 @@ class EvidencePackage(BaseModel):
 
 
 class CompilerOutput(BaseModel):
-    carrier_edits: list[CarrierRecord] = Field(default_factory=list)
+    carrier_edits: list[CarrierEdit] = Field(default_factory=list)
     execution_context: ExecutionContext
     abstain_reason: str | None = None
     """Set when an honest replacement for the live tail cannot be built."""
