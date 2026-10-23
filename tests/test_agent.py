@@ -1,11 +1,14 @@
 """CarryOnAgent end to end with mini-swe-agent's deterministic model and a local shell."""
 
+import json
+
 import yaml
 from minisweagent.config import builtin_config_dir
 from minisweagent.environments.local import LocalEnvironment
 from minisweagent.models.test_models import DeterministicModel, make_output
 
 from carrycode.agent import CarryOnAgent, SlidingWindowAgent
+from carrycode.metrics import trajectory_usage
 from carrycode.records import CarrierRecord, CarrierType
 from carrycode.runtime import CarryOnRuntime
 
@@ -72,6 +75,19 @@ def test_carryon_agent_sends_view_but_keeps_full_log():
     assert any("<carryon_checkpoint>" in str(msg.get("content")) for msg in last_view)
     assert len(last_view) < len(agent.messages)  # the model saw less than the full log
     assert agent.messages[0]["role"] == "system"
+
+
+def test_trajectory_contains_carryon_state():
+    agent = CarryOnAgent(model(3), LocalEnvironment(), runtime=FakeRuntime(), **AGENT_CONFIG)
+    agent.run("do things")
+
+    data = agent.serialize()
+
+    assert data["info"]["carryon"]["fold_stats"]["committed"] == 1
+    assert data["info"]["carryon"]["carriers"][0]["subject"] == "src/a.py"
+    assert data["info"]["carryon"]["fold_index"] == agent.fold_index
+    json.dumps(data)
+    assert trajectory_usage(data).folds_committed == 1
 
 
 def test_sliding_window_agent_truncates():

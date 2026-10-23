@@ -6,12 +6,14 @@ In this implementation (as in the paper), a successful fold covers the entire li
 
 from __future__ import annotations
 
+import dataclasses
 import logging
 from dataclasses import dataclass, field
 
 from pydantic import BaseModel, Field
 
 from carrycode.compiler import Compiler, EvidencePackage
+from carrycode.llm import RoleUsage
 from carrycode.records import ExecutionContext
 from carrycode.registry import CandidateRegistry, CarrierStore
 from carrycode.tracker import Tracker
@@ -40,6 +42,12 @@ class FoldStats:
     attempts: int = 0
     committed: int = 0
     rejected: list[str] = field(default_factory=list)
+
+
+def _role_usage(role) -> dict:
+    """RoleUsage of a Tracker/Compiler as a dict; zeros when the role or its llm is missing."""
+    usage = getattr(getattr(role, "llm", None), "usage", None)
+    return dataclasses.asdict(usage if usage is not None else RoleUsage())
 
 
 class CarryOnRuntime:
@@ -74,6 +82,16 @@ class CarryOnRuntime:
 
     def render_checkpoint(self) -> dict | None:
         return render_checkpoint(self.store.current(), self.ec)
+
+    def snapshot(self) -> dict:
+        """JSON-ready runtime state for the trajectory (keys: see T004 contract)."""
+        return {
+            "fold_stats": dataclasses.asdict(self.stats),
+            "events": [e.model_dump(mode="json") for e in self.events],
+            "role_usage": {"tracker": _role_usage(self.tracker), "compiler": _role_usage(self.compiler)},
+            "carriers": [r.model_dump(mode="json") for r in self.store.current()],
+            "execution_context": self.ec.model_dump(mode="json"),
+        }
 
     def fold(self, task: str, live_tail: list[dict], log_offset: int, env) -> bool:
         """Try one fold. Returns True only if carriers and EC were committed.

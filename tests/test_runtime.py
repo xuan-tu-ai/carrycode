@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from carrycode.compiler import Compiler, CompilerOutput, EvidencePackage
 from carrycode.records import CarrierEdit, CarrierType, ExecutionContext, Obligation
 from carrycode.runtime import CarryOnRuntime
@@ -284,3 +286,19 @@ def test_update_uses_prior_record():
     assert compiler.package is not None
     assert len(compiler.package.prior_records) == 1
     assert compiler.package.prior_records[0].version == 1
+
+
+def test_snapshot_keys():
+    rt = CarryOnRuntime(Tracker(ScriptedRoleLLM([])), Compiler(ScriptedRoleLLM([])))
+
+    snap = rt.snapshot()
+
+    assert set(snap) == {"fold_stats", "events", "role_usage", "carriers", "execution_context"}
+    assert snap["role_usage"]["tracker"]["calls"] == 0
+    json.dumps(snap)
+
+
+def test_snapshot_without_roles():
+    snap = CarryOnRuntime(tracker=None, compiler=None).snapshot()
+
+    assert snap["role_usage"]["compiler"]["calls"] == 0

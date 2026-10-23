@@ -76,6 +76,10 @@ class CarryOnAgent(ViewAgent):
     def build_view(self) -> list[dict]:
         return build_view(self.messages, self.fold_index, self.runtime.render_checkpoint(), head_len=HEAD_LEN)
 
+    def serialize(self, *extra_dicts) -> dict:
+        carryon = {**self.runtime.snapshot(), "fold_index": self.fold_index}
+        return super().serialize({"info": {"carryon": carryon}}, *extra_dicts)
+
     def query(self) -> dict:
         self._check_limits()
         tail = self.messages[self.fold_index :]
