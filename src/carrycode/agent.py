@@ -77,6 +77,7 @@ class CarryOnAgent(ViewAgent):
         return build_view(self.messages, self.fold_index, self.runtime.render_checkpoint(), head_len=HEAD_LEN)
 
     def query(self) -> dict:
+        self._check_limits()
         tail = self.messages[self.fold_index :]
         if tail and self.runtime.should_fold(tail):
             task = self.extra_template_vars.get("task", "")
