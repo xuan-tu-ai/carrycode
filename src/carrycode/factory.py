@@ -15,7 +15,7 @@ from carrycode.tracker import Tracker
 
 
 def build_runtime(exp: ExperimentConfig, models: ModelsConfig) -> CarryOnRuntime:
-    """Tracker and Compiler share the runtime model (docs/decisions.md: DeepSeek for both roles)."""
+    """Tracker and Compiler share the runtime model (docs/decisions.md: one model for both roles)."""
     if exp.runtime is None:
         raise ValueError(f"experiment {exp.name} has no runtime settings")
     role = models.runtime
