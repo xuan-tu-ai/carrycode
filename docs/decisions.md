@@ -2,6 +2,20 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-23: M1 first real CarryOn run
+
+- 3 instances, carryon_full (no Grounder yet): 3/3 resolved (baseline: 3/3). **No fold was attempted**: these tasks
+  end with live tails of 1.2k–3.2k estimated tokens, below `trigger_tokens: 6000`, so the run was the baseline in
+  a CarryOnAgent wrapper. Mean per task 24,724 tokens, $0.0033 (baseline 26,594 tokens, $0.0032; run-to-run noise).
+- Smoke rerun with `trigger_tokens: 1000` (`runs/carryon_smoke/`, ad hoc config): 3/3 resolved; 4 folds attempted,
+  0 committed. Rejections: "no compile request" (astropy, 2×: the Tracker found nothing worth compiling) and
+  "claim cites unauthorized steps [5]" (sympy, 2×: the Compiler cited a tail step that was not in `# Evidence`).
+  Mean 46,723 tokens (runtime share 31%), $0.0063: twice the baseline, with nothing retired.
+- Conclusion: M1 shows the pipeline runs on real tasks without crashing; it does not yet show any benefit. The
+  benefit can only appear on long trajectories (M3 picks the longest baseline runs).
+- Follow-up for M2: stop whole-fold rejection for one bad citation (drop or repair the claim, or add the cited
+  tail steps to the evidence), then retest on a long task.
+
 ## 2026-10-23: M0 baseline numbers
 
 - 3 instances (data/m0_instances.txt), baseline config, Claude Haiku 5.5: 3/3 resolved

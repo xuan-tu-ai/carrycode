@@ -30,4 +30,4 @@ Model choices changed after that plan was written; `decisions.md` is authoritati
 - [x] `Tracker.scan`, `Compiler.compile`, `CarryOnRuntime.fold` with atomic commit
 - [x] Runtime state saved in trajectories (`info.carryon`)
 - [x] Offline end-to-end fold test (`tests/test_fold_e2e.py`)
-- [ ] Real `carryon_full` run on the 3 M0 instances (T020)
+- [x] Real `carryon_full` run on the 3 M0 instances (T020; no fold committed, see decisions.md)
