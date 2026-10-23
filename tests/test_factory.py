@@ -9,9 +9,9 @@ from minisweagent.agents.default import DefaultAgent
 from minisweagent.environments.local import LocalEnvironment
 from minisweagent.models.test_models import DeterministicModel, make_output
 
-from carrycode.agent import SlidingWindowAgent
+from carrycode.agent import CarryOnAgent, SlidingWindowAgent
 from carrycode.config import build_mswea_config, load_experiment, load_models
-from carrycode.factory import build_agent
+from carrycode.factory import build_agent, build_runtime
 
 
 def _load(name: str):
@@ -49,10 +49,37 @@ def test_default_agent_runs_offline() -> None:
     assert agent.run("task")["exit_status"] == "Submitted"
 
 
-def test_carryon_not_yet_supported() -> None:
+def test_build_carryon_agent() -> None:
     exp, models, cfg = _load("carryon_full.yaml")
-    with pytest.raises(NotImplementedError):
-        build_agent(exp, models, cfg, DeterministicModel(outputs=[]), LocalEnvironment())
+    agent = build_agent(exp, models, cfg, DeterministicModel(outputs=[]), LocalEnvironment())
+    assert isinstance(agent, CarryOnAgent)
+    assert agent.runtime.trigger_tokens == 6000
+    assert agent.runtime.tracker.max_requests_per_scan == 4
+    assert agent.runtime.tracker.llm is not agent.runtime.compiler.llm
+
+
+def test_no_code_checks_config() -> None:
+    exp, models, cfg = _load("carryon_no_code_checks.yaml")
+    agent = build_agent(exp, models, cfg, DeterministicModel(outputs=[]), LocalEnvironment())
+    assert agent.runtime.use_code_checks is False
+
+
+def test_runtime_uses_runtime_model() -> None:
+    exp, models, cfg = _load("carryon_full.yaml")
+    agent = build_agent(exp, models, cfg, DeterministicModel(outputs=[]), LocalEnvironment())
+    assert agent.runtime.compiler.llm.model_name == load_models(exp.models).runtime.model_name
+
+
+@pytest.mark.parametrize("path", sorted(Path("configs/experiments").glob("*.yaml")), ids=lambda p: p.stem)
+def test_every_experiment_builds(path: Path) -> None:
+    exp, models, cfg = _load(path.name)
+    build_agent(exp, models, cfg, DeterministicModel(outputs=[]), LocalEnvironment())
+
+
+def test_build_runtime_requires_settings() -> None:
+    exp, models, _ = _load("baseline.yaml")
+    with pytest.raises(ValueError, match="runtime settings"):
+        build_runtime(exp, models)
 
 
 def test_output_path_is_passed(tmp_path: Path) -> None:
