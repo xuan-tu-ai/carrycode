@@ -1,0 +1,4 @@
+# M0 smoke-test instances (small, well-known SWE-bench Verified tasks).
+astropy__astropy-12907
+django__django-11099
+sympy__sympy-20590

@@ -2,6 +2,14 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-23: M0 baseline numbers
+
+- 3 instances (data/m0_instances.txt), baseline config, Claude Haiku 5.5: 3/3 resolved
+  (official harness, dataset `SWE-bench/SWE-bench_Verified`; swebench 5.x needs that copy, not `princeton-nlp/...`).
+- Mean per task: 5.3 calls, 26,594 tokens, $0.0032.
+- Budget estimate for M3 (4 configs × 30 tasks, ~1.3× for runtime overhead): about $0.50. These 3 tasks are easy
+  (4–7 steps); harder tasks can use 10–50× more, so plan for $5–25 and rely on `cost_limit` per task.
+
 ## 2026-10-23: Claude Haiku 5.5 via Token Harbor (Agent Pass)
 
 - Plan: Token Harbor Agent Pass ($1.99/month, $10 included usage). Same endpoint and key variable
@@ -53,3 +61,9 @@ Newest first. Add an entry whenever a design choice changes.
 - **Environment:** Linux with Docker; Python via uv.
 - **License:** Apache-2.0. No code or prompt text from the original authors (their repo has
   no license and no code as of 2026-10-19).
+
+   ## <YYYY-MM-DD>: M0 baseline numbers
+
+   - 3 instances (data/m0_instances.txt), baseline config, DeepSeek: <k>/3 resolved.
+   - Mean per task: <calls> calls, <tokens> tokens, $<cost>.
+   - Budget estimate for M3 (4 configs × 30 tasks, ~1.3× for runtime overhead): $<estimate>.
