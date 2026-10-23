@@ -61,9 +61,3 @@ Newest first. Add an entry whenever a design choice changes.
 - **Environment:** Linux with Docker; Python via uv.
 - **License:** Apache-2.0. No code or prompt text from the original authors (their repo has
   no license and no code as of 2026-10-19).
-
-   ## <YYYY-MM-DD>: M0 baseline numbers
-
-   - 3 instances (data/m0_instances.txt), baseline config, DeepSeek: <k>/3 resolved.
-   - Mean per task: <calls> calls, <tokens> tokens, $<cost>.
-   - Budget estimate for M3 (4 configs × 30 tasks, ~1.3× for runtime overhead): $<estimate>.
