@@ -23,3 +23,11 @@ Model choices changed after that plan was written; `decisions.md` is authoritati
 - [ ] Implement `scripts/run_swebench.py` for the `baseline` config
 - [ ] Run 3 instances; run the official SWE-bench harness on `preds.json`
 - [ ] Record tokens and cost per task; update the budget estimate
+
+## M1 checklist
+
+- [x] Tracker and Compiler prompts (own wording, not Appendix D)
+- [x] `Tracker.scan`, `Compiler.compile`, `CarryOnRuntime.fold` with atomic commit
+- [x] Runtime state saved in trajectories (`info.carryon`)
+- [x] Offline end-to-end fold test (`tests/test_fold_e2e.py`)
+- [ ] Real `carryon_full` run on the 3 M0 instances (T020)
