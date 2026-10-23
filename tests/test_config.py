@@ -18,6 +18,20 @@ from carrycode.config import (
 EXPERIMENT_DIR = Path("configs/experiments")
 EXPERIMENT_FILES = sorted(EXPERIMENT_DIR.glob("*.yaml"))
 
+PILOT_MODEL_FILES = [
+    Path("configs/models/haiku.yaml"),
+    Path("configs/models/gpt6luna.yaml"),
+    Path("configs/models/minimax.yaml"),
+    Path("configs/models/deepseek1017.yaml"),
+]
+PILOT_MODEL_IDS = [p.stem for p in PILOT_MODEL_FILES]
+PILOT_OUTPUT_COST_PER_TOKEN = {
+    Path("configs/models/haiku.yaml"): 5e-07,
+    Path("configs/models/gpt6luna.yaml"): 5e-07,
+    Path("configs/models/minimax.yaml"): 6e-07,
+    Path("configs/models/deepseek1017.yaml"): 1.2e-06,
+}
+
 
 @pytest.mark.parametrize(
     "path",
@@ -91,7 +105,7 @@ def test_experiments_use_haiku_via_token_harbor() -> None:
         models = load_models(load_experiment(path).models)
         assert models.host.model_name == "openai/claude-haiku-5.5"
         assert models.runtime.model_name == "openai/claude-haiku-5.5"
-        assert models.host.model_kwargs["timeout"] == 120
+        assert models.host.model_kwargs["timeout"] == 600
 
 
 def test_haiku_price_registered(monkeypatch) -> None:
@@ -100,3 +114,29 @@ def test_haiku_price_registered(monkeypatch) -> None:
     monkeypatch.setenv("TOKENHARBOR_API_KEY", "thk_test")
     setup_provider(load_models(Path("configs/models/haiku.yaml")))
     assert litellm.model_cost["openai/claude-haiku-5.5"]["output_cost_per_token"] == 5e-07
+
+
+@pytest.mark.parametrize("path", PILOT_MODEL_FILES, ids=PILOT_MODEL_IDS)
+def test_pilot_model_configs(path: Path) -> None:
+    models = load_models(path)
+    assert models.host.model_name == models.runtime.model_name
+    assert models.api_key_env == "TOKENHARBOR_API_KEY"
+    for role in (models.host, models.runtime):
+        kwargs = role.model_kwargs
+        assert kwargs["reasoning_effort"] == "max"
+        assert kwargs["timeout"] == 600
+        assert kwargs["drop_params"] is True
+        assert kwargs["api_base"] == "https://tokenharbor.ai/v1"
+
+
+@pytest.mark.parametrize("path", PILOT_MODEL_FILES, ids=PILOT_MODEL_IDS)
+def test_pilot_prices_registered(path: Path, monkeypatch) -> None:
+    import litellm
+
+    monkeypatch.setenv("TOKENHARBOR_API_KEY", "thk_test")
+    models = load_models(path)
+    setup_provider(models)
+    # get_model_info canonicalises provider-prefixed ids (LiteLLM has a built-in `gpt-6-luna`),
+    # so it resolves the key that register_model actually wrote.
+    info = litellm.get_model_info(models.host.model_name)
+    assert info["output_cost_per_token"] == PILOT_OUTPUT_COST_PER_TOKEN[path]

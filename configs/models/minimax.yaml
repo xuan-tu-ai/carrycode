@@ -1,0 +1,24 @@
+# MiniMax M3.1 Flash via Token Harbor (OpenAI-compatible, Agent Pass plan), used for the host agent and the runtime roles.
+# Confirmed 2026-10-23 with GET https://tokenharbor.ai/v1/models: minimax-m3.1-flash, $0.15/M input, $0.60/M output,
+# $0.015/M cache read, 1M context, tool calls. LiteLLM sends `reasoning_effort: max` through Token Harbor without error.
+api_key_env: TOKENHARBOR_API_KEY          # copied to OPENAI_API_KEY at startup (never written to trajectories)
+price_registry: configs/models/litellm_registry.json
+
+host:
+  model_name: "openai/minimax-m3.1-flash"
+  model_kwargs:
+    api_base: "https://tokenharbor.ai/v1"
+    drop_params: true
+    temperature: 0.0
+    timeout: 600
+    reasoning_effort: "max"
+  cost_tracking: "default"
+
+runtime:
+  model_name: "openai/minimax-m3.1-flash"
+  model_kwargs:
+    api_base: "https://tokenharbor.ai/v1"
+    drop_params: true
+    temperature: 0.0
+    timeout: 600
+    reasoning_effort: "max"
