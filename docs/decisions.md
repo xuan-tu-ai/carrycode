@@ -2,6 +2,24 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-23: Evaluate on SWE-bench Pro (Python subset); pilot four cheap hosts
+
+- Why: on SWE-bench Verified, mini-swe-agent trajectories stay short (our runs: 4–9 steps, 1–3k tail tokens;
+  SambaNova reports conversations "generally under 20k tokens"), so CarryOn never folds. The paper's gains come
+  from 500-step OSWorld 2.0 runs whose context exceeds 200K tokens.
+- Benchmark: `ScaleAI/SWE-bench_Pro` public set (642 tasks; MIT-licensed harness at scaleapi/SWE-bench_Pro-os).
+  M3 uses only the 237 Python tasks (ansible, openlibrary, qutebrowser): the Grounder checks are Python-only
+  until M2 ends. Images: `ghcr.io/scaleapi/swe-bench_pro-v2:<id>` (dataset column `docker_image`), workdir `/app`.
+  Task text = problem statement + requirements + interface, as in the official setup.
+- Models: Agent Pass only covers cheap models (Sonnet/Opus/Kimi K3/GPT-6 Sol are refused). Pilot hosts, all with
+  `reasoning_effort: max` (accepted by every one; Token Harbor does not report reasoning tokens, so its effect
+  is unverified): GPT-6 Luna ($0.10/$0.50), MiniMax M3.1 Flash ($0.15/$0.60), DeepSeek V4.1 Flash 1017
+  ($0.30/$1.20), Haiku 5.5 as control ($0.10/$0.50; **$0.50/$2.50 for prompts over 100k tokens**, which our
+  price registry does not model yet). The pilot winner runs host, Tracker and Compiler (one model, as in the paper).
+- Budget: under $50 total. Pilot: 4 hosts × 3 tasks, `step_limit: 150`, `cost_limit: 1.5` (≤ $18). M3 size is set
+  after the pilot from the measured cost per task.
+- SWE-bench Verified support stays (`benchmark: verified` is the default).
+
 ## 2026-10-23: M1 first real CarryOn run
 
 - 3 instances, carryon_full (no Grounder yet): 3/3 resolved (baseline: 3/3). **No fold was attempted**: these tasks
