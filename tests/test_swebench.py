@@ -11,7 +11,7 @@ from minisweagent.models.test_models import DeterministicModel, make_output
 
 from carrycode.config import build_mswea_config, load_experiment, load_models
 from carrycode.metrics import TaskUsage
-from carrycode.swebench import load_instances, read_instance_ids, run_instance
+from carrycode.swebench import load_instances, read_instance_ids, run_instance, task_text
 
 
 def _baseline():
@@ -95,3 +95,43 @@ def test_load_instances_reports_missing_ids(monkeypatch) -> None:
 
     with pytest.raises(ValueError, match="b"):
         load_instances(["a", "b"])
+
+
+def test_task_text_pro_sections() -> None:
+    instance = {
+        "instance_id": "repo__x-1",
+        "problem_statement": "  fix it  ",
+        "requirements": "  keep the API  ",
+        "interface": "  def f() -> int  ",
+    }
+    text = task_text(instance)
+    assert text.startswith("fix it\n\n## Requirements\nkeep the API")
+    assert text.index("## Requirements") < text.index("## Interface")
+    assert text.endswith("## Interface\ndef f() -> int")
+
+    assert task_text({"problem_statement": "  fix it  "}) == "fix it"
+    assert task_text({"problem_statement": "fix it", "requirements": "  ", "interface": ""}) == "fix it"
+
+
+def test_run_instance_sends_task_text(tmp_path: Path) -> None:
+    exp, models, cfg = _baseline()
+    instance = {
+        "instance_id": "repo__x-2",
+        "problem_statement": "fix it",
+        "requirements": "keep the API",
+    }
+    run_instance(
+        instance,
+        exp,
+        models,
+        cfg,
+        tmp_path,
+        model_factory=lambda _cfg: DeterministicModel(
+            outputs=[make_output("done", [{"command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT\necho mypatch"}])]
+        ),
+        env_factory=lambda _cfg, _inst: LocalEnvironment(),
+    )
+
+    traj = json.loads((tmp_path / "repo__x-2" / "repo__x-2.traj.json").read_text())
+    assert traj["messages"][1]["role"] == "user"
+    assert "## Requirements" in traj["messages"][1]["content"]

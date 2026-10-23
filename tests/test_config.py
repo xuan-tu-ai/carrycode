@@ -140,3 +140,30 @@ def test_pilot_prices_registered(path: Path, monkeypatch) -> None:
     # so it resolves the key that register_model actually wrote.
     info = litellm.get_model_info(models.host.model_name)
     assert info["output_cost_per_token"] == PILOT_OUTPUT_COST_PER_TOKEN[path]
+
+
+def test_benchmark_defaults_to_verified() -> None:
+    for path in EXPERIMENT_FILES:
+        assert load_experiment(path).benchmark == "verified"
+
+
+def test_build_mswea_config_pro_uses_app() -> None:
+    exp = load_experiment(Path("configs/experiments/baseline.yaml")).model_copy(update={"benchmark": "pro"})
+    models = load_models(exp.models)
+    cfg = build_mswea_config(exp, models)
+    assert cfg["environment"]["cwd"] == "/app"
+    assert "/testbed" not in cfg["agent"]["instance_template"]
+    assert "/testbed" not in cfg["agent"]["system_template"]
+    assert "/app" in cfg["agent"]["instance_template"]
+    assert "BASH_ENV" not in cfg["environment"]["env"]
+
+
+def test_build_mswea_config_verified_unchanged() -> None:
+    exp = load_experiment(Path("configs/experiments/baseline.yaml"))
+    models = load_models(exp.models)
+    cfg = build_mswea_config(exp, models)
+    assert cfg["environment"]["cwd"] == "/testbed"
+    assert "BASH_ENV" in cfg["environment"]["env"]
+
+    build_mswea_config(exp.model_copy(update={"benchmark": "pro"}), models)
+    assert build_mswea_config(exp, models) == cfg

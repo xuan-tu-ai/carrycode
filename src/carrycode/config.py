@@ -20,6 +20,9 @@ from pydantic import BaseModel, Field, model_validator
 REPO_ROOT: Path = Path(__file__).resolve().parents[2]
 """Relative paths in config files are resolved against the repository root."""
 
+WORKDIRS = {"verified": "/testbed", "pro": "/app"}
+"""Repository checkout inside the instance image, per benchmark."""
+
 
 class RoleModelConfig(BaseModel):
     model_name: str
@@ -47,6 +50,7 @@ class ExperimentConfig(BaseModel):
     agent: Literal["default", "sliding_window", "carryon"]
     models: Path
     agent_config: str = "swebench"
+    benchmark: Literal["verified", "pro"] = "verified"
     step_limit: int = 250
     cost_limit: float = 3.0
     window_messages: int | None = None
@@ -97,7 +101,7 @@ def setup_provider(models: ModelsConfig) -> None:
 def build_mswea_config(exp: ExperimentConfig, models: ModelsConfig) -> dict:
     """Build the full mini-swe-agent config dict for one experiment."""
     base = get_config_from_spec(exp.agent_config)
-    return recursive_merge(
+    config = recursive_merge(
         base,
         {
             "agent": {"step_limit": exp.step_limit, "cost_limit": exp.cost_limit},
@@ -108,3 +112,10 @@ def build_mswea_config(exp: ExperimentConfig, models: ModelsConfig) -> dict:
             },
         },
     )
+    if exp.benchmark == "pro":
+        workdir = WORKDIRS["pro"]
+        for key in ("instance_template", "system_template"):
+            config["agent"][key] = config["agent"][key].replace(WORKDIRS["verified"], workdir)
+        config["environment"]["cwd"] = workdir
+        config["environment"]["env"].pop("BASH_ENV", None)
+    return config
