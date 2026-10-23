@@ -77,3 +77,19 @@ def test_real_call_path_uses_litellm(monkeypatch) -> None:
     assert llm.usage.output_tokens == 2
     assert llm.usage.cost == 0.0
     assert received_kwargs.get("response_format") == {"type": "json_object"}
+
+
+def test_fenced_json_is_parsed_without_retry() -> None:
+    llm = ScriptedRoleLLM(['```json\n{"x": 7}\n```'])
+    assert llm.complete_json("s", "u", Foo) == Foo(x=7)
+    assert llm.usage.calls == 1
+    assert llm.usage.failures == []
+
+
+def test_strip_code_fence_variants() -> None:
+    from carrycode.llm import strip_code_fence
+
+    assert strip_code_fence('```\n{"x": 1}\n```') == '{"x": 1}'
+    assert strip_code_fence('  ```JSON\n{"x": 1}```  ') == '{"x": 1}'
+    assert strip_code_fence('{"x": 1}') == '{"x": 1}'
+    assert strip_code_fence("text ```json\n{}\n``` more") == "text ```json\n{}\n``` more"

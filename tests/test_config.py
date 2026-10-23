@@ -84,3 +84,19 @@ def test_setup_provider_requires_key(monkeypatch) -> None:
     monkeypatch.delenv("TOKENHARBOR_API_KEY", raising=False)
     with pytest.raises(RuntimeError, match="TOKENHARBOR_API_KEY"):
         setup_provider(load_models(Path("configs/models/deepseek.yaml")))
+
+
+def test_experiments_use_haiku_via_token_harbor() -> None:
+    for path in EXPERIMENT_FILES:
+        models = load_models(load_experiment(path).models)
+        assert models.host.model_name == "openai/claude-haiku-5.5"
+        assert models.runtime.model_name == "openai/claude-haiku-5.5"
+        assert models.host.model_kwargs["timeout"] == 120
+
+
+def test_haiku_price_registered(monkeypatch) -> None:
+    import litellm
+
+    monkeypatch.setenv("TOKENHARBOR_API_KEY", "thk_test")
+    setup_provider(load_models(Path("configs/models/haiku.yaml")))
+    assert litellm.model_cost["openai/claude-haiku-5.5"]["output_cost_per_token"] == 5e-07

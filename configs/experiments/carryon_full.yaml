@@ -1,7 +1,7 @@
 # Full CarryOn with coding Grounder checks (tests, compile, git diff).
 name: carryon_full
 agent: carryon
-models: configs/models/deepseek.yaml
+models: configs/models/haiku.yaml
 agent_config: swebench
 step_limit: 250
 cost_limit: 3.0

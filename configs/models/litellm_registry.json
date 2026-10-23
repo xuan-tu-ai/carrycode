@@ -9,12 +9,20 @@
     "supports_function_calling": true
   },
   "openai/deepseek-v4.1-flash": {
-    "input_cost_per_token": 1.5e-07,
-    "output_cost_per_token": 6e-07,
+    "input_cost_per_token": 3e-07,
+    "output_cost_per_token": 1.2e-06,
     "cache_read_input_token_cost": 3e-08,
     "litellm_provider": "openai",
     "mode": "chat",
     "max_input_tokens": 1048576,
+    "supports_function_calling": true
+  },
+  "openai/claude-haiku-5.5": {
+    "input_cost_per_token": 1e-07,
+    "output_cost_per_token": 5e-07,
+    "litellm_provider": "openai",
+    "mode": "chat",
+    "max_input_tokens": 1000000,
     "supports_function_calling": true
   }
 }

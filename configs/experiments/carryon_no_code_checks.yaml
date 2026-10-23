@@ -2,7 +2,7 @@
 # Measures the contribution of the content-level Grounder.
 name: carryon_no_code_checks
 agent: carryon
-models: configs/models/deepseek.yaml
+models: configs/models/haiku.yaml
 agent_config: swebench
 step_limit: 250
 cost_limit: 3.0

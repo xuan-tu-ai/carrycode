@@ -1,7 +1,7 @@
 # Keep only the most recent messages (paper Table 4 baseline).
 name: sliding_window
 agent: sliding_window
-models: configs/models/deepseek.yaml
+models: configs/models/haiku.yaml
 agent_config: swebench
 step_limit: 250
 cost_limit: 3.0

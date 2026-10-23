@@ -26,7 +26,7 @@ old history with a **context view** of three parts:
 2. **A content-level Grounder.** Before a carrier is committed, it is checked by running the
    recorded tests, `git diff`, and compilation inside the task's Docker container. The paper's
    OSWorld checks only look at file existence, hashes and document structure.
-3. **Low-cost setup.** Host agent and runtime both run on DeepSeek V4.1 Flash (via Token Harbor); a full evaluation targets
+3. **Low-cost setup.** Host agent and runtime both run on Claude Haiku 5.5 (via Token Harbor); a full evaluation targets
    under $200 of API spend.
 
 ## Layout

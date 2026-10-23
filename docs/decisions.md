@@ -2,6 +2,17 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-23: Claude Haiku 5.5 via Token Harbor (Agent Pass)
+
+- Plan: Token Harbor Agent Pass ($1.99/month, $10 included usage). Same endpoint and key variable
+  (`TOKENHARBOR_API_KEY`).
+- Model: `claude-haiku-5.5` for host and runtime (`configs/models/haiku.yaml`; all experiments point to it).
+  $0.10/M input, $0.50/M output, 1M context. `deepseek.yaml` stays as an alternative.
+- Live check: plain, bash tool call and JSON mode succeed. Haiku wraps JSON-mode replies in a ```json fence,
+  so `RoleLLM` now strips one surrounding code fence before parsing.
+- Request `timeout: 120` on host and runtime calls (a stalled provider otherwise blocks up to 600 s per call).
+- Price update: paid `deepseek-v4.1-flash` is now $0.30/M input, $1.20/M output.
+
 ## 2026-10-22: Runtime prompts are language-neutral; Grounder checks stay Python for now
 
 - Tracker and Compiler prompts must not assume Python: carriers (files, findings, state) work for any stack,
