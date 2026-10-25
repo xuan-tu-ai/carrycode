@@ -102,6 +102,8 @@ def test_setup_provider_requires_key(monkeypatch) -> None:
 
 def test_experiments_use_haiku_via_token_harbor() -> None:
     for path in EXPERIMENT_FILES:
+        if path.stem.startswith("pilot_"):
+            continue
         models = load_models(load_experiment(path).models)
         assert models.host.model_name == "openai/claude-haiku-5.5"
         assert models.runtime.model_name == "openai/claude-haiku-5.5"
@@ -144,6 +146,8 @@ def test_pilot_prices_registered(path: Path, monkeypatch) -> None:
 
 def test_benchmark_defaults_to_verified() -> None:
     for path in EXPERIMENT_FILES:
+        if path.stem.startswith("pilot_"):
+            continue
         assert load_experiment(path).benchmark == "verified"
 
 
@@ -184,3 +188,14 @@ def test_luna_config_sets_instructions_and_price(monkeypatch) -> None:
     assert info["output_cost_per_token"] == 5e-07
     # "responses" routes tool calls through the Responses bridge; "chat" hits a nonexistent Codex endpoint.
     assert info["mode"] == "responses"
+
+
+@pytest.mark.parametrize("suffix", PILOT_MODEL_IDS)
+def test_pilot_experiments(suffix: str) -> None:
+    exp = load_experiment(EXPERIMENT_DIR / f"pilot_{suffix}.yaml")
+    assert exp.name == f"pilot_{suffix}"
+    assert exp.agent == "default"
+    assert exp.benchmark == "pro"
+    assert exp.step_limit == 150
+    assert exp.cost_limit == 1.5
+    assert exp.models == Path(f"configs/models/{suffix}.yaml")

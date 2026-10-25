@@ -117,3 +117,12 @@ def run_instance(
         with open(out_dir / "usage.jsonl", "a") as f:
             f.write(usage.model_dump_json() + "\n")
     return usage
+
+
+def to_pro_patches(preds: dict, prefix: str) -> list[dict]:
+    """mini-swe-agent preds.json -> SWE-bench Pro evaluator input; skips empty patches."""
+    return [
+        {"instance_id": iid, "patch": entry["model_patch"], "prefix": prefix}
+        for iid, entry in sorted(preds.items())
+        if entry.get("model_patch")
+    ]

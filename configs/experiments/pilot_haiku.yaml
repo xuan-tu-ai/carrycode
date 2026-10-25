@@ -1,0 +1,8 @@
+# Pilot (T025): plain mini-swe-agent on SWE-bench Pro with haiku, max reasoning effort.
+name: pilot_haiku
+agent: default
+benchmark: pro
+models: configs/models/haiku.yaml
+agent_config: swebench
+step_limit: 150
+cost_limit: 1.5

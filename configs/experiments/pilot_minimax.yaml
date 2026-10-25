@@ -1,0 +1,8 @@
+# Pilot (T025): plain mini-swe-agent on SWE-bench Pro with minimax, max reasoning effort.
+name: pilot_minimax
+agent: default
+benchmark: pro
+models: configs/models/minimax.yaml
+agent_config: swebench
+step_limit: 150
+cost_limit: 1.5
