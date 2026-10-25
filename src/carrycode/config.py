@@ -121,4 +121,5 @@ def build_mswea_config(exp: ExperimentConfig, models: ModelsConfig) -> dict:
             config["agent"][key] = config["agent"][key].replace(WORKDIRS["verified"], workdir)
         config["environment"]["cwd"] = workdir
         config["environment"]["env"].pop("BASH_ENV", None)
+        config["environment"]["run_args"] = ["--rm", "--network", "none"]
     return config

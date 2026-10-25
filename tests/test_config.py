@@ -199,3 +199,11 @@ def test_pilot_experiments(suffix: str) -> None:
     assert exp.step_limit == 150
     assert exp.cost_limit == 1.5
     assert exp.models == Path(f"configs/models/{suffix}.yaml")
+
+
+def test_pro_runs_block_network() -> None:
+    exp = load_experiment(Path("configs/experiments/baseline.yaml"))
+    models = load_models(exp.models)
+    pro = build_mswea_config(exp.model_copy(update={"benchmark": "pro"}), models)
+    assert pro["environment"]["run_args"] == ["--rm", "--network", "none"]
+    assert "run_args" not in build_mswea_config(exp.model_copy(update={"benchmark": "verified"}), models)["environment"]
