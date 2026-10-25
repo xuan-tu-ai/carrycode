@@ -167,3 +167,20 @@ def test_build_mswea_config_verified_unchanged() -> None:
 
     build_mswea_config(exp.model_copy(update={"benchmark": "pro"}), models)
     assert build_mswea_config(exp, models) == cfg
+
+
+def test_luna_config_sets_instructions_and_price(monkeypatch) -> None:
+    import litellm
+
+    monkeypatch.delenv("CHATGPT_DEFAULT_INSTRUCTIONS", raising=False)
+    models = load_models(Path("configs/models/luna.yaml"))
+    assert models.host.model_name == models.runtime.model_name == "chatgpt/gpt-6-luna"
+    assert models.api_key_env is None
+    for role in (models.host, models.runtime):
+        assert role.model_kwargs["reasoning_effort"] == "max"
+    setup_provider(models)
+    assert os.environ["CHATGPT_DEFAULT_INSTRUCTIONS"] == "You are a helpful assistant."
+    info = litellm.get_model_info("chatgpt/gpt-6-luna")
+    assert info["output_cost_per_token"] == 5e-07
+    # "responses" routes tool calls through the Responses bridge; "chat" hits a nonexistent Codex endpoint.
+    assert info["mode"] == "responses"

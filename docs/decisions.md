@@ -2,6 +2,21 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-25: GPT-6 Luna via the ChatGPT subscription while Token Harbor is out of allowance
+
+- The Agent Pass allowance is used up (HTTP 402 on every model). The T025 pilot is paused until it returns.
+- Stopgap: `configs/models/luna.yaml`, LiteLLM's `chatgpt/` provider (ChatGPT/Codex subscription), GPT-6 Luna for
+  host, Tracker and Compiler, `reasoning_effort: max` (applied: `low` gives 0 reasoning tokens, `max` the most).
+- Sign-in: LiteLLM device login; tokens in `~/.config/litellm/chatgpt/auth.json` (mode 600), separate from Codex/omp.
+- Two traps, both handled in config: LiteLLM prepends a ~7.6 KB "You are Codex" prompt unless
+  `CHATGPT_DEFAULT_INSTRUCTIONS` is set (new `ModelsConfig.env`, applied by `setup_provider`); and the price entry
+  needs `"mode": "responses"`, otherwise tool calls go to a nonexistent `/backend-api/codex/chat/completions`.
+- Costs are nominal (Token Harbor's gpt-6-luna rates) so `cost_limit` works; the subscription is not billed per token.
+- Checked live on the toy repo: baseline Submitted in 6 steps; carryon_full 1/2 folds committed, no orphaned tool
+  messages, tests pass; no token in saved trajectories.
+- Token Harbor's `openai/gpt-6-luna` would also use the Responses API (LiteLLM knows the model); Token Harbor serves
+  `/v1/responses`, but tool calls through it are untested.
+
 ## 2026-10-23: Evaluate on SWE-bench Pro (Python subset); pilot four cheap hosts
 
 - Why: on SWE-bench Verified, mini-swe-agent trajectories stay short (our runs: 4–9 steps, 1–3k tail tokens;

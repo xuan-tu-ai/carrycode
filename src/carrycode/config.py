@@ -37,6 +37,8 @@ class ModelsConfig(BaseModel):
     """Env var holding the provider key; copied to OPENAI_API_KEY for OpenAI-compatible endpoints."""
     price_registry: Path | None = None
     """LiteLLM model-cost JSON for models missing from LiteLLM's price table."""
+    env: dict[str, str] = {}
+    """Extra process environment for the provider, set by `setup_provider` (no secrets here)."""
 
 
 class RuntimeSettings(BaseModel):
@@ -92,6 +94,7 @@ def setup_provider(models: ModelsConfig) -> None:
         if not key:
             raise RuntimeError(f"{models.api_key_env} is not set (see .env.example)")
         os.environ["OPENAI_API_KEY"] = key
+    os.environ.update(models.env)
     if models.price_registry:
         import litellm  # imported lazily so offline tests that never call this stay light
 

@@ -51,5 +51,14 @@
     "mode": "chat",
     "max_input_tokens": 1000000,
     "supports_function_calling": true
+  },
+  "chatgpt/gpt-6-luna": {
+    "input_cost_per_token": 1e-07,
+    "output_cost_per_token": 5e-07,
+    "cache_read_input_token_cost": 1e-08,
+    "litellm_provider": "chatgpt",
+    "mode": "responses",
+    "max_input_tokens": 1000000,
+    "supports_function_calling": true
   }
 }
