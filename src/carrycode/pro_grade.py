@@ -55,6 +55,11 @@ def _text(proc: subprocess.CompletedProcess) -> str:
     return out.decode(errors="replace") if isinstance(out, bytes) else str(out)
 
 
+def _stderr(proc: subprocess.CompletedProcess) -> str:
+    err = proc.stderr or b""
+    return err.decode(errors="replace") if isinstance(err, bytes) else str(err)
+
+
 def _count(pattern: str, text: str) -> int | None:
     m = re.search(pattern, text)
     return int(m.group(1)) if m else None
@@ -106,7 +111,7 @@ def grade_patch(task_dir: Path, instance_id: str, patch: str, run: Runner = subp
                     instance_id=instance_id,
                     reward=0,
                     patch_applied=False,
-                    error=f"git apply failed: {_text(apply)[-200:]}",
+                    error=f"git apply failed: {(_text(apply) + _stderr(apply)).strip()[-200:]}",
                 )
             applied = True
 
