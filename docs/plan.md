@@ -34,7 +34,8 @@ Model choices changed after that plan was written; `decisions.md` is authoritati
 
 ## M3 prep checklist (see decisions.md, 2026-10-23 SWE-bench Pro entry)
 
-- [ ] Pilot model configs with `reasoning_effort: max` (T022)
-- [ ] SWE-bench Pro support in the runner (T023)
-- [ ] Pilot experiments, pilot instances, Pro evaluation input (T024)
-- [ ] Pilot run: 4 hosts × 3 Pro tasks; pick the model (T025, manual)
+- [x] Pilot model configs with `reasoning_effort: max` (T022)
+- [x] SWE-bench Pro support in the runner (T023)
+- [x] Pilot experiments, pilot instances, Pro evaluation input (T024)
+- [ ] Local V2 grader; agent containers without network (T026)
+- [ ] Pilot run: 4 hosts × 3 Pro tasks; pick the model (T025, manual; paused until Token Harbor allowance returns)

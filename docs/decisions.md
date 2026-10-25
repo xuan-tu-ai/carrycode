@@ -2,6 +2,20 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-25: Grade SWE-bench Pro V2 locally; agent phase offline
+
+- `ScaleAI/SWE-bench_Pro` (default config) is **V2**, graded by per-task verifiers in the evaluator repo
+  (`v2/tasks/<id>/tests/test.sh`, normally run with Harbor on Modal). The repo's root `swe_bench_pro_eval.py` is the
+  v1 evaluator with different images; we do not use it, and `to_pro_patches` (T024) is no longer needed.
+- Local grading: fresh task image, copy `tests/` to `/tests`, `git apply` the patch in `/app`, run `test.sh`, read
+  `/logs/verifier/reward.txt` (T026, `scripts/grade_pro.py`). Checked on the openlibrary pilot task: reference patch 1,
+  empty patch 0, GPT-6 Luna's baseline patch 1 (59/59 required tests; 23 steps, ~706k tokens).
+- This machine's Docker is a snap and cannot read host `/tmp`: bind mounts and `docker cp` fail silently. The grader
+  sends files through stdin.
+- Agent containers for Pro run with `--network none`, as in the official locked protocol, so scores are comparable.
+  Model calls come from the host process and are unaffected. The grader's containers keep network.
+- All 237 Python Pro images use `/app` (the "/testbed in a few tasks" note does not apply to our subset).
+
 ## 2026-10-25: GPT-6 Luna via the ChatGPT subscription while Token Harbor is out of allowance
 
 - The Agent Pass allowance is used up (HTTP 402 on every model). The T025 pilot is paused until it returns.
