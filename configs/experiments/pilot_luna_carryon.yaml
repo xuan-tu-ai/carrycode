@@ -1,0 +1,13 @@
+# Pilot (T025, Luna stand-in): CarryOn on SWE-bench Pro, GPT-6 Luna for host, Tracker and Compiler.
+# Same limits as pilot_luna, so the two runs compare CarryOn with the plain host on identical tasks.
+name: pilot_luna_carryon
+agent: carryon
+benchmark: pro
+models: configs/models/luna.yaml
+agent_config: swebench
+step_limit: 150
+cost_limit: 1.5
+runtime:
+  trigger_tokens: 6000           # paper Appendix A.3
+  max_requests_per_scan: 4       # paper Table 7
+  use_code_checks: true          # stored; the Grounder is not wired into folds yet (M2)

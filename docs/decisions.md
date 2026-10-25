@@ -2,6 +2,21 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-25: First CarryOn measurement on SWE-bench Pro (GPT-6 Luna, 3 pilot tasks)
+
+- Setup: `pilot_luna` (baseline) vs `pilot_luna_carryon` (CarryOn, trigger 6000, Luna for all roles), same 3 pilot
+  tasks, `step_limit: 150`, agent containers offline, graded with the local V2 verifier (sanity: gold 1, empty 0).
+- Resolved: baseline 3/3, CarryOn 3/3.
+- Cost: CarryOn used **2.3× the tokens** (3.58M vs 1.59M) and 3.2× the nominal cost ($0.51 vs $0.16); runtime roles
+  were 30% of CarryOn's tokens. Steps: 188 vs 57 (ansible 48 vs 21, openlibrary 114 vs 22, qutebrowser 26 vs 14).
+- Folding itself worked: 29/53 folds committed (22 "no compile request", 1 abstain, 1 unauthorized citation), no
+  crash, prompts reset to ~2k tokens after each commit, max prompt 22.9k/36.6k/29.4k vs 38.8k/54.6k/31.4k.
+- Cause of the extra steps: re-reading. After a fold the live tail is empty and carriers hold summaries, not code,
+  so the agent reads the files again: `parse.py` 91 reads vs 15, `module_common.py` 42 vs 16 (re-reads per file
+  19.3 vs 3.3 and 17.7 vs 5.2).
+- Conclusion: with the paper's OSWorld settings, CarryOn does not pay off for coding; it fragments the working set.
+  Next (M2): keep a recent part of the tail after a fold, fold less often (higher trigger), and test again.
+
 ## 2026-10-25: Grade SWE-bench Pro V2 locally; agent phase offline
 
 - `ScaleAI/SWE-bench_Pro` (default config) is **V2**, graded by per-task verifiers in the evaluator repo
