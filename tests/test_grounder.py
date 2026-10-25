@@ -1,5 +1,5 @@
 from carrycode.grounder import CheckResult, Verdict, aggregate
-from carrycode.grounder.checks import GitDiffNonEmpty, TestOutcomeCheck
+from carrycode.grounder.checks import CommandExit, GitDiffNonEmpty, TestOutcomeCheck
 
 
 def r(v: Verdict) -> CheckResult:
@@ -29,11 +29,41 @@ class FakeEnv:
         return {"output": "", "returncode": 1}
 
 
-def test_git_diff_nonempty():
-    env = FakeEnv({"git diff": {"output": " src/a.py | 2 +-\n", "returncode": 0}})
-    assert GitDiffNonEmpty().run(env, "src/a.py").verdict == Verdict.SUPPORTED
-    env = FakeEnv({"git diff": {"output": "", "returncode": 0}})
+def test_git_diff_untracked_file_supported():
+    env = FakeEnv({"git status": {"output": "?? src/new.ts\n", "returncode": 0}})
+    assert GitDiffNonEmpty().run(env, "src/new.ts").verdict == Verdict.SUPPORTED
+
+
+def test_git_diff_clean_file_contradicted():
+    env = FakeEnv({"git status": {"output": "", "returncode": 0}})
     assert GitDiffNonEmpty().run(env, "src/a.py").verdict == Verdict.CONTRADICTED
+    env = FakeEnv({"git status": {"output": "", "returncode": 128}})
+    assert GitDiffNonEmpty().run(env, "src/a.py").verdict == Verdict.UNKNOWN
+
+
+def test_git_diff_modified_file_supported():
+    env = FakeEnv({"git status": {"output": " M src/a.py\n", "returncode": 0}})
+    assert GitDiffNonEmpty().run(env, "src/a.py").verdict == Verdict.SUPPORTED
+
+
+def test_command_exit_matches_expected():
+    env = FakeEnv({"tsc": {"output": "", "returncode": 0}})
+    assert CommandExit().run(env, "npx tsc --noEmit").verdict == Verdict.SUPPORTED
+    env = FakeEnv({"go test": {"output": "FAIL", "returncode": 1}})
+    assert CommandExit().run(env, "go test ./...", expected="1").verdict == Verdict.SUPPORTED
+    env = FakeEnv({"go test": {"output": "FAIL", "returncode": 2}})
+    assert CommandExit().run(env, "go test ./...", expected="0").verdict == Verdict.CONTRADICTED
+
+
+def test_command_exit_bad_expected_is_unknown():
+    env = FakeEnv({"go test": {"output": "", "returncode": 0}})
+    assert CommandExit().run(env, "go test ./...", expected="pass").verdict == Verdict.UNKNOWN
+
+
+def test_command_exit_uses_safe_env():
+    env = FakeEnv({"npm test": {"output": "ok", "returncode": 0}})
+    CommandExit().run(env, "npm test")
+    assert env.commands[0].startswith("PYTHONDONTWRITEBYTECODE=1")
 
 
 def test_test_outcome_compares_with_recorded_result():

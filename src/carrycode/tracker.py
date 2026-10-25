@@ -13,7 +13,7 @@ class CheckSpec(BaseModel):
     """One Grounder check the Tracker asks for, bound to a candidate (Appendix A.2)."""
 
     check_name: str
-    """One of: file_exists, git_diff_nonempty, python_compiles, test_outcome."""
+    """One of: file_exists, git_diff_nonempty, python_compiles, test_outcome, command_exit."""
     target: str
     expected: str | None = None
 

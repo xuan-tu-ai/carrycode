@@ -32,12 +32,12 @@ class FileExists:
 
 
 class GitDiffNonEmpty:
-    """The file differs from the task's starting commit."""
+    """The file differs from the last commit, including newly created (untracked) files."""
 
     name = "git_diff_nonempty"
 
     def run(self, env, target: str, expected: str | None = None) -> CheckResult:
-        out = _run(env, f"git diff --stat -- {shlex.quote(target)}")
+        out = _run(env, f"git status --porcelain -- {shlex.quote(target)}")
         if out["returncode"] != 0:
             verdict = Verdict.UNKNOWN
         else:
@@ -81,6 +81,36 @@ class TestOutcomeCheck:
             verdict = Verdict.SUPPORTED if observed == expected else Verdict.CONTRADICTED
         return CheckResult(
             check_name=self.name, target=target, verdict=verdict, observation=f"{observed}: {_tail(out['output'])}"
+        )
+
+
+class CommandExit:
+    """Run a read-only build/test/lint command; compare its exit code with `expected` ("0" by default).
+
+    Language-agnostic: e.g. `npx tsc --noEmit`, `npm test -- -t "cart total"`, `go test ./pkg/...`.
+    `target` is the command. Commands must not write to the repository (the runtime checks git status).
+    """
+
+    name = "command_exit"
+
+    def __init__(self, timeout: int = 120) -> None:
+        self.timeout = timeout
+
+    def run(self, env, target: str, expected: str | None = None) -> CheckResult:
+        try:
+            want = int(expected or "0")
+        except ValueError:
+            return CheckResult(
+                check_name=self.name, target=target, verdict=Verdict.UNKNOWN, observation=f"bad expected: {expected!r}"
+            )
+        try:
+            out = _run(env, f"{SAFE_ENV} {target}", timeout=self.timeout)
+        except Exception as e:  # timeout or environment failure: undecidable, not a contradiction
+            return CheckResult(check_name=self.name, target=target, verdict=Verdict.UNKNOWN, observation=str(e))
+        code = out["returncode"]
+        verdict = Verdict.SUPPORTED if code == want else Verdict.CONTRADICTED
+        return CheckResult(
+            check_name=self.name, target=target, verdict=verdict, observation=f"exit {code}: {_tail(out['output'])}"
         )
 
 

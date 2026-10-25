@@ -47,6 +47,7 @@ Progress is only ready for compilation when the live tail contains tangible veri
   - `git_diff_nonempty` (any language): `target` is a path whose working-tree content differs from the last commit.
   - `python_compiles` (Python only): `target` is a `.py` file that parses as valid Python.
   - `test_outcome` (Python/pytest only): `target` is a pytest node id (e.g. `tests/test_x.py::test_y`) and `expected` is `"pass"` or `"fail"`.
+  - `command_exit` (any language): `target` is a read-only command such as a build, type-check or test run; `expected` is the exit code as a string (default `"0"`).
 
 ## Obligations
 
