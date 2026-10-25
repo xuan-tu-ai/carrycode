@@ -18,6 +18,11 @@ def _run(env, command: str, timeout: int | None = None) -> dict:
     return env.execute({"command": command}, **kwargs)
 
 
+def _env_error(out: dict) -> str:
+    """mini-swe-agent environments report timeouts and execution errors here instead of raising."""
+    return out.get("exception_info") or ""
+
+
 def _tail(text: str, limit: int = 400) -> str:
     return text if len(text) <= limit else "..." + text[-limit:]
 
@@ -74,6 +79,8 @@ class TestOutcomeCheck:
             out = _run(env, cmd, timeout=self.timeout)
         except Exception as e:  # timeout or environment failure: undecidable, not a contradiction
             return CheckResult(check_name=self.name, target=target, verdict=Verdict.UNKNOWN, observation=str(e))
+        if err := _env_error(out):
+            return CheckResult(check_name=self.name, target=target, verdict=Verdict.UNKNOWN, observation=err)
         observed = "pass" if out["returncode"] == 0 else "fail"
         if expected is None:
             verdict = Verdict.UNKNOWN
@@ -107,6 +114,8 @@ class CommandExit:
             out = _run(env, f"{SAFE_ENV} {target}", timeout=self.timeout)
         except Exception as e:  # timeout or environment failure: undecidable, not a contradiction
             return CheckResult(check_name=self.name, target=target, verdict=Verdict.UNKNOWN, observation=str(e))
+        if err := _env_error(out):
+            return CheckResult(check_name=self.name, target=target, verdict=Verdict.UNKNOWN, observation=err)
         code = out["returncode"]
         verdict = Verdict.SUPPORTED if code == want else Verdict.CONTRADICTED
         return CheckResult(

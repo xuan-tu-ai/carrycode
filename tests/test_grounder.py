@@ -66,6 +66,19 @@ def test_command_exit_uses_safe_env():
     assert env.commands[0].startswith("PYTHONDONTWRITEBYTECODE=1")
 
 
+def test_env_timeout_is_unknown():
+    """Environments return returncode -1 plus exception_info on timeout; that is undecidable, not a contradiction."""
+    timed_out = {
+        "output": "",
+        "returncode": -1,
+        "exception_info": "An error occurred while executing the command: timeout",
+    }
+    env = FakeEnv({"go test": timed_out})
+    assert CommandExit().run(env, "go test ./...").verdict == Verdict.UNKNOWN
+    env = FakeEnv({"pytest": timed_out})
+    assert TestOutcomeCheck().run(env, "tests/t.py::test_x", expected="pass").verdict == Verdict.UNKNOWN
+
+
 def test_test_outcome_compares_with_recorded_result():
     env = FakeEnv({"pytest": {"output": "1 passed", "returncode": 0}})
     assert TestOutcomeCheck().run(env, "tests/t.py::test_x", expected="pass").verdict == Verdict.SUPPORTED
