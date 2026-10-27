@@ -15,6 +15,7 @@ from carrycode.registry import make_carrier_id
 from carrycode.runtime import CarryOnRuntime
 from carrycode.testing import ScriptedRoleLLM
 from carrycode.tracker import Tracker
+from carrycode.view import estimate_tokens
 
 AGENT_CONFIG = yaml.safe_load((builtin_config_dir / "default.yaml").read_text())["agent"]
 
@@ -127,3 +128,90 @@ def test_fold_end_to_end_with_tool_calls():
     usage = trajectory_usage(agent.serialize())
     assert usage.folds_committed == 1
     assert usage.folds_attempted == 3
+
+
+def test_fold_with_keep_recent_tokens_retains_live_tail():
+    m = RecordingToolcallModel(
+        outputs=[
+            tc(0, "echo step0-padding-" + "a" * 40),
+            tc(1, "echo step1-padding-" + "b" * 40),
+            tc(2, "echo step2"),
+            tc(3, FINISH),
+        ]
+    )
+    rt = CarryOnRuntime(
+        Tracker(ScriptedRoleLLM([TRACKER_REPLY])),
+        Compiler(ScriptedRoleLLM([COMPILER_REPLY])),
+        trigger_tokens=1,
+        keep_recent_tokens=25,
+    )
+    agent = CarryOnAgent(m, LocalEnvironment(), runtime=rt, **AGENT_CONFIG)
+
+    info = agent.run("do things")
+
+    assert info["exit_status"] == "Submitted"
+    assert rt.stats.committed == 1
+    # After commit, fold_index points at start of kept suffix (step 1 assistant at index 4)
+    assert agent.fold_index == 4
+    # The kept suffix starts with an assistant message (never tool)
+    assert agent.messages[agent.fold_index]["role"] == "assistant"
+
+    # Trigger baseline after commit equals token estimate of kept suffix
+    kept_suffix = agent.messages[agent.fold_index : 6]  # step 1 asst + tool
+    assert rt.trigger_baseline == estimate_tokens(kept_suffix)
+    assert rt.trigger_baseline > 0
+
+    # Every view passes tool-pair check
+    for view in m.seen:
+        assert_tool_pairs_ok(view)
+
+    # Views after fold commit (views 2 and 3)
+    for k in range(2, 4):
+        assert m.seen[k][2]["content"].startswith("<carryon_checkpoint>")
+        assert m.seen[k][:2] == agent.messages[:2]
+        # view[3:] equals agent.messages[fold_index:...]
+        assert m.seen[k][3:] == agent.messages[agent.fold_index : agent.fold_index + len(m.seen[k]) - 3]
+
+
+def test_rejected_fold_leaves_fold_index_unchanged():
+    m = RecordingToolcallModel(
+        outputs=[
+            tc(0, "echo a"),
+            tc(1, FINISH),
+        ]
+    )
+    rejected_tracker = {"candidate_updates": [], "compile_requests": [], "resolved_obligation_ids": []}
+    rt = CarryOnRuntime(
+        Tracker(ScriptedRoleLLM([rejected_tracker])),
+        Compiler(ScriptedRoleLLM([])),
+        trigger_tokens=1,
+        keep_recent_tokens=0,
+    )
+    agent = CarryOnAgent(m, LocalEnvironment(), runtime=rt, **AGENT_CONFIG)
+    initial_fold_index = agent.fold_index  # 2
+
+    info = agent.run("do things")
+
+    assert info["exit_status"] == "Submitted"
+    assert rt.stats.attempts == 1
+    assert rt.stats.committed == 0
+    assert agent.fold_index == initial_fold_index
+
+
+def test_keep_recent_tokens_zero_reproduces_old_behaviour():
+    m = RecordingToolcallModel(outputs=[tc(0, "echo a"), tc(1, FINISH)])
+    rt = CarryOnRuntime(
+        Tracker(ScriptedRoleLLM([TRACKER_REPLY])),
+        Compiler(ScriptedRoleLLM([COMPILER_REPLY])),
+        trigger_tokens=1,
+        keep_recent_tokens=0,
+    )
+    agent = CarryOnAgent(m, LocalEnvironment(), runtime=rt, **AGENT_CONFIG)
+
+    info = agent.run("do things")
+
+    assert info["exit_status"] == "Submitted"
+    assert rt.stats.committed == 1
+    # With keep_recent_tokens=0, fold_index equals the message count at fold commit (4)
+    assert agent.fold_index == 4
+    assert rt.trigger_baseline == 0

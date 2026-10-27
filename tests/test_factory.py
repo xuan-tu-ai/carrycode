@@ -53,7 +53,8 @@ def test_build_carryon_agent() -> None:
     exp, models, cfg = _load("carryon_full.yaml")
     agent = build_agent(exp, models, cfg, DeterministicModel(outputs=[]), LocalEnvironment())
     assert isinstance(agent, CarryOnAgent)
-    assert agent.runtime.trigger_tokens == 6000
+    assert agent.runtime.trigger_tokens == 24000
+    assert agent.runtime.keep_recent_tokens == 8000
     assert agent.runtime.tracker.max_requests_per_scan == 4
     assert agent.runtime.tracker.llm is not agent.runtime.compiler.llm
 

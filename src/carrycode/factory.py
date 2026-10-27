@@ -28,6 +28,7 @@ def build_runtime(exp: ExperimentConfig, models: ModelsConfig) -> CarryOnRuntime
         tracker,
         compiler,
         trigger_tokens=exp.runtime.trigger_tokens,
+        keep_recent_tokens=exp.runtime.keep_recent_tokens,
         use_code_checks=exp.runtime.use_code_checks,
     )
 

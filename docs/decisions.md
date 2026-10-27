@@ -2,6 +2,19 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-27: Partial folds, higher trigger, incremental Tracker input
+
+- Problem: the first measurement on SWE-bench Pro showed CarryOn taking 188 steps vs 57 and 2.3× tokens because each committed fold cleared the live tail, wiping the agent's working set and causing severe file re-reads (e.g. 91 reads vs 15). Folds also fired too frequently (every 6k tokens), and 22 of 53 Tracker scans returned "no compile request" while resending the entire live tail each time.
+- Change 1 (Partial folds / working set retention): `keep_recent_tokens` setting (default 0 for backward compatibility, 8000 in coding configs). When folding, the live tail is split into a covered prefix and a kept suffix of >= `keep_recent_tokens`, aligned using `safe_tail_start` so tool results never sever from assistant calls. Only the covered prefix is folded, and upon commit `fold_index` advances to the start of the kept suffix.
+- Change 2 (Fold less often & trigger baseline): Raised `trigger_tokens` from 6000 (OSWorld default) to 24000 across coding experiment configs (`carryon_full`, `carryon_no_code_checks`, `pilot_luna_carryon`). After a committed fold, the trigger baseline is initialized to the token estimate of the kept suffix, ensuring the next fold triggers only after `trigger_tokens` new tokens accumulate.
+- Change 3 (Incremental Tracker input): `CarryOnRuntime.fold` now projects only the incremental steps added since the previous scan of the tail to the Tracker (tracked via `_messages_at_last_scan`), while the Compiler continues to receive the full covered tail. The Tracker prompt was updated to explain that the live tail presents only new steps and that existing candidates from prior scans may be updated or requested for compilation.
+- Result (GPT-6 Luna, same 3 Pro pilot tasks, one run each): 3/3 resolved (baseline 3/3); 68 steps vs 57;
+  1.39M tokens vs 1.59M (−12%), $0.134 vs $0.159 nominal; runtime roles 57k tokens (v1: 1.07M); 2/3 folds committed.
+  Not yet a win: openlibrary dropped 36% with **no** committed fold (run-to-run noise), qutebrowser rose 44%.
+  Max prompts stay 28–39k, far below the paper's 200k+, so CarryOn has little to remove on these tasks.
+- Status: experimental (branch `exp/carryon-v2`), not for `main`. Next: longer tasks (largest gold patches or
+  HARD-51) and repeated runs.
+
 ## 2026-10-25: First CarryOn measurement on SWE-bench Pro (GPT-6 Luna, 3 pilot tasks)
 
 - Setup: `pilot_luna` (baseline) vs `pilot_luna_carryon` (CarryOn, trigger 6000, Luna for all roles), same 3 pilot

@@ -56,11 +56,13 @@ class CarryOnRuntime:
         tracker: Tracker,
         compiler: Compiler,
         trigger_tokens: int = 6000,
+        keep_recent_tokens: int = 0,
         use_code_checks: bool = True,
     ) -> None:
         self.tracker = tracker
         self.compiler = compiler
         self.trigger_tokens = trigger_tokens
+        self.keep_recent_tokens = keep_recent_tokens
         self.use_code_checks = use_code_checks
         """False = ablation: only file_exists / git_diff checks, no test or compile checks."""
         self.store = CarrierStore()
@@ -68,7 +70,13 @@ class CarryOnRuntime:
         self.ec = ExecutionContext()
         self.stats = FoldStats()
         self._tokens_at_last_scan = 0
+        self._messages_at_last_scan = 0
+        self._last_log_offset: int | None = None
         self.events: list[FoldEvent] = []
+
+    @property
+    def trigger_baseline(self) -> int:
+        return self._tokens_at_last_scan
 
     def _reject(self, base: dict, reason: str) -> bool:
         self.stats.rejected.append(reason)
@@ -107,8 +115,18 @@ class CarryOnRuntime:
             "tail_tokens": self._tokens_at_last_scan,
         }
         try:
-            tail_text = project_tail(live_tail, log_offset)
-            scan = self.tracker.scan(task, tail_text, self.registry.all(), self.store.current(), self.ec)
+            if self._last_log_offset != log_offset:
+                self._messages_at_last_scan = 0
+                self._last_log_offset = log_offset
+
+            start_idx = min(self._messages_at_last_scan, len(live_tail))
+            new_messages = live_tail[start_idx:]
+            tracker_offset = log_offset + start_idx
+            tracker_tail_text = project_tail(new_messages, tracker_offset)
+            compiler_tail_text = project_tail(live_tail, log_offset)
+
+            scan = self.tracker.scan(task, tracker_tail_text, self.registry.all(), self.store.current(), self.ec)
+            self._messages_at_last_scan = len(live_tail)
             for candidate in scan.candidate_updates:
                 self.registry.upsert(candidate)  # kept even if this fold fails (App. A.1)
             if not scan.compile_requests:
@@ -128,7 +146,7 @@ class CarryOnRuntime:
             for obligation in ec_in.obligations:
                 if obligation.obligation_id in scan.resolved_obligation_ids:
                     obligation.resolved = True
-            output = self.compiler.compile(package, ec_in, tail_text)
+            output = self.compiler.compile(package, ec_in, compiler_tail_text)
             problems = validate(output, package, self.store)
             if problems:
                 return self._reject(base, "; ".join(problems))
@@ -144,5 +162,7 @@ class CarryOnRuntime:
         self.events.append(FoldEvent(**base, committed=True, carrier_ids=[r.carrier_id for r in records]))
         return True
 
-    def on_fold_committed(self) -> None:
-        self._tokens_at_last_scan = 0
+    def on_fold_committed(self, baseline_tokens: int = 0) -> None:
+        self._tokens_at_last_scan = baseline_tokens
+        self._messages_at_last_scan = 0
+        self._last_log_offset = None

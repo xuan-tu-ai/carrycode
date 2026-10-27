@@ -46,7 +46,23 @@ def test_all_experiment_configs_load(path: Path) -> None:
 
 def test_carryon_config_has_runtime() -> None:
     exp = load_experiment(Path("configs/experiments/carryon_full.yaml"))
-    assert exp.runtime == RuntimeSettings(trigger_tokens=6000, max_requests_per_scan=4, use_code_checks=True)
+    assert exp.runtime == RuntimeSettings(
+        trigger_tokens=24000,
+        keep_recent_tokens=8000,
+        max_requests_per_scan=4,
+        use_code_checks=True,
+    )
+
+
+@pytest.mark.parametrize(
+    "config_name",
+    ["carryon_full.yaml", "carryon_no_code_checks.yaml", "pilot_luna_carryon.yaml"],
+)
+def test_carryon_experiments_use_m2_settings(config_name: str) -> None:
+    exp = load_experiment(Path("configs/experiments") / config_name)
+    assert exp.runtime is not None
+    assert exp.runtime.trigger_tokens == 24000
+    assert exp.runtime.keep_recent_tokens == 8000
 
 
 def test_sliding_window_requires_window() -> None:

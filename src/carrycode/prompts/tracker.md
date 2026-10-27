@@ -9,11 +9,10 @@ You are an observer and analyst: you never issue commands or modify files yourse
 The incoming prompt contains several structured sections:
 - `# Task`: The repository issue or task specification being resolved.
 - `# Current carriers`: Carriers committed in earlier folds, with their identifiers and summaries.
-- `# Candidates`: Candidates currently tracked across prior scans.
+- `# Candidates`: Candidates currently tracked across prior scans. These persist across scans and can be updated or submitted for compilation.
 - `# Open obligations`: Active duties or pending sub-goals owed by the agent.
 - `# Limits`: Operational parameters, including the maximum number of compile requests permitted in this scan.
-- `# Live tail`: The sequence of recent agent actions and environment outputs, formatted as step blocks like `[step 12] tool: <output>`. Step indices in this section are referenced by `supporting_steps` and `evidence_steps`.
-
+- `# Live tail`: The sequence of new agent actions and environment outputs added since the previous scan, formatted as step blocks like `[step 12] tool: <output>`. Only messages new since the last scan appear here. Step indices in this section and earlier steps preserved in `# Candidates` can be referenced.
 ## Carrier Types
 
 Every candidate has a `provisional_type` classifying the kind of progress:
@@ -31,17 +30,17 @@ Progress is only ready for compilation when the live tail contains tangible veri
 
 ## Candidate Management
 
+- Existing candidates from `# Candidates` persist across scans. You can update them with new observations from the current live tail, or submit them for compilation if they have reached verification.
 - When updating an existing candidate from `# Candidates`, preserve its `candidate_id`.
 - For newly identified candidates, assign `C` followed by the next unused integer (such as `C1`, `C2`).
 - Set `first_seen_step` to the step index where the candidate was initially observed, and `last_revised_step` to the latest step in the live tail providing new information.
 - If a candidate updates an existing carrier from `# Current carriers`, set `target_carrier_id` to that carrier's identifier. Otherwise, set `target_carrier_id` to null.
 - List all supporting step indices in `supporting_steps`.
 - Provide a clear, factual `description` of the progress.
-
 ## Compile Requests and Verification Checks
 
 - Include at most the number of compile requests specified in `# Limits`.
-- Each request must set `candidate_id` and specify `evidence_steps`: the minimal subset of step numbers from `# Live tail` that proves the candidate's claims. Never cite steps outside the live tail.
+- Each request must set `candidate_id` and specify `evidence_steps`: the minimal subset of step numbers that proves the candidate's claims. These may reference steps from the current live tail or steps previously recorded for the candidate.
 - Optionally attach automated verification checks in `checks`. Each check contains `check_name`, `target`, and optional `expected`. Only request a check that fits the repository's language; if none fits, leave `checks` empty.
   - `file_exists` (any language): `target` is a path that exists.
   - `git_diff_nonempty` (any language): `target` is a path whose working-tree content differs from the last commit.

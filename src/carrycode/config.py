@@ -43,6 +43,7 @@ class ModelsConfig(BaseModel):
 
 class RuntimeSettings(BaseModel):
     trigger_tokens: int = 6000
+    keep_recent_tokens: int = 0
     max_requests_per_scan: int = 4
     use_code_checks: bool = True
 

@@ -302,3 +302,80 @@ def test_snapshot_without_roles():
     snap = CarryOnRuntime(tracker=None, compiler=None).snapshot()
 
     assert snap["role_usage"]["compiler"]["calls"] == 0
+
+
+def test_tracker_incremental_scan_and_compiler_full_tail():
+    msg2 = {"role": "assistant", "content": "analyze issue"}
+    msg3 = {"role": "tool", "content": "traceback in parser.py:42"}
+    msg4 = {"role": "assistant", "content": "patch file"}
+    msg5 = {"role": "tool", "content": "tests pass"}
+
+    tail1 = [msg2, msg3]
+    tail2 = [msg2, msg3, msg4, msg5]
+
+    reply1 = make_tracker_reply(
+        candidate_updates=[
+            {
+                "candidate_id": "C1",
+                "provisional_type": "information_product",
+                "subject": "root cause",
+                "description": "bug in parser.py:42",
+                "supporting_steps": [3],
+                "target_carrier_id": None,
+                "first_seen_step": 3,
+                "last_revised_step": 3,
+            }
+        ],
+        compile_requests=[],
+    )
+    reply2 = make_tracker_reply(
+        candidate_updates=[],
+        compile_requests=[{"candidate_id": "C1", "evidence_steps": [3]}],
+    )
+    comp_reply = make_compiler_reply(
+        carrier_edits=[
+            {
+                "candidate_id": "C1",
+                "carrier_id": None,
+                "carrier_type": "information_product",
+                "subject": "root cause",
+                "summary": "bug at parser.py:42",
+                "conditions": [],
+                "claims": [
+                    {"claim_id": "cl1", "proposition": "cause located", "source_steps": [3], "retracted": False}
+                ],
+                "base_version": None,
+            }
+        ],
+    )
+
+    tracker_llm = ScriptedRoleLLM([reply1, reply2])
+    compiler_llm = ScriptedRoleLLM([comp_reply])
+
+    rt = CarryOnRuntime(Tracker(tracker_llm), Compiler(compiler_llm))
+
+    # First scan covers tail1 (steps 2 and 3)
+    res1 = rt.fold("task", tail1, log_offset=2, env=None)
+    assert res1 is False
+    assert len(tracker_llm.requests) == 1
+    assert "[step 2]" in tracker_llm.requests[0][1]["content"]
+    assert "[step 3]" in tracker_llm.requests[0][1]["content"]
+
+    # Second scan with extended tail2 (steps 2, 3, 4, 5)
+    res2 = rt.fold("task", tail2, log_offset=2, env=None)
+    assert res2 is True
+    assert len(tracker_llm.requests) == 2
+
+    tracker_scan2_user = tracker_llm.requests[1][1]["content"]
+    # Tracker sees only new steps since last scan
+    assert "[step 2]" not in tracker_scan2_user
+    assert "[step 3]" not in tracker_scan2_user
+    assert "[step 4]" in tracker_scan2_user
+    assert "[step 5]" in tracker_scan2_user
+
+    # Compiler sees the whole covered prefix
+    compiler_user = compiler_llm.requests[0][1]["content"]
+    assert "[step 2]" in compiler_user
+    assert "[step 3]" in compiler_user
+    assert "[step 4]" in compiler_user
+    assert "[step 5]" in compiler_user

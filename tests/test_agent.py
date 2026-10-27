@@ -7,7 +7,7 @@ from minisweagent.config import builtin_config_dir
 from minisweagent.environments.local import LocalEnvironment
 from minisweagent.models.test_models import DeterministicModel, make_output
 
-from carrycode.agent import CarryOnAgent, SlidingWindowAgent
+from carrycode.agent import CarryOnAgent, SlidingWindowAgent, split_live_tail
 from carrycode.metrics import trajectory_usage
 from carrycode.records import CarrierRecord, CarrierType
 from carrycode.runtime import CarryOnRuntime
@@ -103,3 +103,36 @@ def test_limits_checked_before_fold():
     info = agent.run("t")
     assert info["exit_status"] == "LimitsExceeded"
     assert rt.fold_calls == 0
+
+
+def test_split_live_tail_zero_tokens():
+    msgs = [{"role": "system"}, {"role": "user"}, {"role": "assistant"}, {"role": "tool"}]
+    assert split_live_tail(msgs, fold_index=2, keep_recent_tokens=0) == len(msgs)
+
+
+def test_split_live_tail_tool_message_advances():
+    # Step 0: assistant + tool
+    # Step 1: assistant + tool
+    msgs = [
+        {"role": "system"},
+        {"role": "user"},
+        {"role": "assistant", "content": "step 0"},
+        {"role": "tool", "content": "long output " * 20},
+        {"role": "assistant", "content": "step 1"},
+        {"role": "tool", "content": "long output " * 20},
+    ]
+    # With keep_recent_tokens = 70, the shortest suffix with >= 70 tokens
+    # starts at index 3 (msgs[3] is tool 0, giving 121 tokens).
+    # safe_tail_start moves it forward to index 4 (step 1 assistant).
+    kept_start = split_live_tail(msgs, fold_index=2, keep_recent_tokens=70)
+    assert kept_start == 4
+    assert msgs[kept_start]["role"] == "assistant"
+
+
+def test_split_live_tail_not_enough_tokens_returns_fold_index():
+    msgs = [
+        {"role": "system"},
+        {"role": "user"},
+        {"role": "assistant", "content": "short"},
+    ]
+    assert split_live_tail(msgs, fold_index=2, keep_recent_tokens=1000) == 2
