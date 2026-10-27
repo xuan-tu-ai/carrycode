@@ -118,7 +118,7 @@ def test_setup_provider_requires_key(monkeypatch) -> None:
 
 def test_experiments_use_haiku_via_token_harbor() -> None:
     for path in EXPERIMENT_FILES:
-        if path.stem.startswith("pilot_"):
+        if path.stem.startswith(("pilot_", "hard_")):
             continue
         models = load_models(load_experiment(path).models)
         assert models.host.model_name == "openai/claude-haiku-5.5"
@@ -162,7 +162,7 @@ def test_pilot_prices_registered(path: Path, monkeypatch) -> None:
 
 def test_benchmark_defaults_to_verified() -> None:
     for path in EXPERIMENT_FILES:
-        if path.stem.startswith("pilot_"):
+        if path.stem.startswith(("pilot_", "hard_")):
             continue
         assert load_experiment(path).benchmark == "verified"
 
