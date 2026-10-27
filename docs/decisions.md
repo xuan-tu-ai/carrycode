@@ -2,6 +2,19 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-27: Long-horizon test, 6 HARD-51 Python tasks (CarryOn v2 vs baseline, GPT-6 Luna)
+
+- Setup: `hard_luna` vs `hard_luna_carryon` (trigger 24k, keep 8k), `step_limit: 250`, offline agent, V2 grader;
+  6 tasks (2 per repo, largest gold patches, `data/pro_hard6_instances.txt`), one run each. All 12 runs `Submitted`.
+- Resolved: baseline 4/6, CarryOn 4/6. They differ on two tasks: CarryOn solved ansible-c1f2 (baseline 3/6 tests),
+  the baseline solved openlibrary-7cbf (CarryOn 4/8 tests).
+- Cost: CarryOn 6.28M tokens vs 4.15M (+51%), $0.60 vs $0.37 nominal (+65%), 196 steps vs 129. Most of the gap is
+  one task (openlibrary-b671: 76 steps and 3.5M tokens vs 36 and 1.6M; neither resolved it). Without it: 2.76M vs
+  2.53M (+9%).
+- Contexts stay short even on HARD-51: max prompt 20–67k (baseline), mean 43k; Luna finishes in 13–36 steps. Folds
+  committed 7/9, about one per task, so CarryOn retires little and pays the extra steps after each fold.
+- Conclusion: no benefit on SWE-bench Pro with Luna; the 200k+ regime where the paper's gains appear is not reached.
+
 ## 2026-10-27: Partial folds, higher trigger, incremental Tracker input
 
 - Problem: the first measurement on SWE-bench Pro showed CarryOn taking 188 steps vs 57 and 2.3× tokens because each committed fold cleared the live tail, wiping the agent's working set and causing severe file re-reads (e.g. 91 reads vs 15). Folds also fired too frequently (every 6k tokens), and 22 of 53 Tracker scans returned "no compile request" while resending the entire live tail each time.
