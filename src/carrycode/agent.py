@@ -12,7 +12,7 @@ from minisweagent.agents.default import AgentConfig, DefaultAgent
 from minisweagent.exceptions import LimitsExceeded, TimeExceeded
 
 from carrycode.runtime import CarryOnRuntime
-from carrycode.view import build_view, safe_tail_start
+from carrycode.view import build_view, estimate_tokens, safe_tail_start
 
 HEAD_LEN = 2  # system message + task message
 
@@ -66,6 +66,25 @@ class SlidingWindowAgent(ViewAgent):
         return self.messages[:HEAD_LEN] + self.messages[safe_tail_start(self.messages, start) :]
 
 
+def split_live_tail(messages: list[dict], fold_index: int, keep_recent_tokens: int) -> int:
+    """Return the start index in *messages* of the kept suffix.
+
+    The kept suffix is the shortest suffix whose token estimate is >= keep_recent_tokens,
+    or the whole tail. It is moved to a valid boundary with safe_tail_start (so it starts
+    at a non-tool message, keeping an assistant call and its tool results together).
+    """
+    if keep_recent_tokens <= 0:
+        return len(messages)
+
+    start = fold_index
+    for i in range(len(messages), fold_index, -1):
+        if estimate_tokens(messages[i:]) >= keep_recent_tokens:
+            start = i
+            break
+
+    return safe_tail_start(messages, start)
+
+
 class CarryOnAgent(ViewAgent):
     def __init__(self, *args, runtime: CarryOnRuntime, **kwargs):
         super().__init__(*args, **kwargs)
@@ -76,11 +95,20 @@ class CarryOnAgent(ViewAgent):
     def build_view(self) -> list[dict]:
         return build_view(self.messages, self.fold_index, self.runtime.render_checkpoint(), head_len=HEAD_LEN)
 
+    def serialize(self, *extra_dicts) -> dict:
+        carryon = {**self.runtime.snapshot(), "fold_index": self.fold_index}
+        return super().serialize({"info": {"carryon": carryon}}, *extra_dicts)
+
     def query(self) -> dict:
+        self._check_limits()
         tail = self.messages[self.fold_index :]
         if tail and self.runtime.should_fold(tail):
-            task = self.extra_template_vars.get("task", "")
-            if self.runtime.fold(task, tail, log_offset=self.fold_index, env=self.env):
-                self.fold_index = len(self.messages)  # the fold covers the whole live tail
-                self.runtime.on_fold_committed()
+            kept_start = split_live_tail(self.messages, self.fold_index, self.runtime.keep_recent_tokens)
+            covered = self.messages[self.fold_index : kept_start]
+            if covered:
+                task = self.extra_template_vars.get("task", "")
+                if self.runtime.fold(task, covered, log_offset=self.fold_index, env=self.env):
+                    self.fold_index = kept_start
+                    kept_suffix = self.messages[self.fold_index :]
+                    self.runtime.on_fold_committed(baseline_tokens=estimate_tokens(kept_suffix))
         return super().query()

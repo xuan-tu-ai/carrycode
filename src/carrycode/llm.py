@@ -3,12 +3,21 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
 
 T = TypeVar("T", bound=BaseModel)
+
+_FENCE = re.compile(r"^\s*```[A-Za-z0-9_-]*\s*\n(.*?)\n?\s*```\s*$", re.DOTALL)
+
+
+def strip_code_fence(text: str) -> str:
+    """Remove one Markdown code fence around a reply. Some models (e.g. Claude Haiku) fence JSON even in JSON mode."""
+    match = _FENCE.match(text)
+    return match.group(1) if match else text
 
 
 @dataclass
@@ -45,7 +54,7 @@ class RoleLLM:
         for _ in range(self.max_retries + 1):
             text = self._call(messages)
             try:
-                return schema.model_validate(json.loads(text))
+                return schema.model_validate(json.loads(strip_code_fence(text)))
             except (json.JSONDecodeError, ValidationError) as e:
                 self.usage.failures.append(str(e)[:300])
                 messages += [

@@ -20,6 +20,9 @@ from pydantic import BaseModel, Field, model_validator
 REPO_ROOT: Path = Path(__file__).resolve().parents[2]
 """Relative paths in config files are resolved against the repository root."""
 
+WORKDIRS = {"verified": "/testbed", "pro": "/app"}
+"""Repository checkout inside the instance image, per benchmark."""
+
 
 class RoleModelConfig(BaseModel):
     model_name: str
@@ -34,10 +37,13 @@ class ModelsConfig(BaseModel):
     """Env var holding the provider key; copied to OPENAI_API_KEY for OpenAI-compatible endpoints."""
     price_registry: Path | None = None
     """LiteLLM model-cost JSON for models missing from LiteLLM's price table."""
+    env: dict[str, str] = {}
+    """Extra process environment for the provider, set by `setup_provider` (no secrets here)."""
 
 
 class RuntimeSettings(BaseModel):
     trigger_tokens: int = 6000
+    keep_recent_tokens: int = 0
     max_requests_per_scan: int = 4
     use_code_checks: bool = True
 
@@ -47,6 +53,7 @@ class ExperimentConfig(BaseModel):
     agent: Literal["default", "sliding_window", "carryon"]
     models: Path
     agent_config: str = "swebench"
+    benchmark: Literal["verified", "pro"] = "verified"
     step_limit: int = 250
     cost_limit: float = 3.0
     window_messages: int | None = None
@@ -88,6 +95,7 @@ def setup_provider(models: ModelsConfig) -> None:
         if not key:
             raise RuntimeError(f"{models.api_key_env} is not set (see .env.example)")
         os.environ["OPENAI_API_KEY"] = key
+    os.environ.update(models.env)
     if models.price_registry:
         import litellm  # imported lazily so offline tests that never call this stay light
 
@@ -97,7 +105,7 @@ def setup_provider(models: ModelsConfig) -> None:
 def build_mswea_config(exp: ExperimentConfig, models: ModelsConfig) -> dict:
     """Build the full mini-swe-agent config dict for one experiment."""
     base = get_config_from_spec(exp.agent_config)
-    return recursive_merge(
+    config = recursive_merge(
         base,
         {
             "agent": {"step_limit": exp.step_limit, "cost_limit": exp.cost_limit},
@@ -108,3 +116,11 @@ def build_mswea_config(exp: ExperimentConfig, models: ModelsConfig) -> dict:
             },
         },
     )
+    if exp.benchmark == "pro":
+        workdir = WORKDIRS["pro"]
+        for key in ("instance_template", "system_template"):
+            config["agent"][key] = config["agent"][key].replace(WORKDIRS["verified"], workdir)
+        config["environment"]["cwd"] = workdir
+        config["environment"]["env"].pop("BASH_ENV", None)
+        config["environment"]["run_args"] = ["--rm", "--network", "none"]
+    return config

@@ -1,8 +1,27 @@
 """Candidate registry and versioned carrier store (Appendix A.1)."""
 
-from __future__ import annotations
+import posixpath
 
-from carrycode.records import Candidate, CarrierRecord
+from carrycode.records import Candidate, CarrierEdit, CarrierRecord, CarrierType
+
+
+def make_carrier_id(carrier_type: CarrierType, subject: str) -> str:
+    """Stable identity from type and normalized subject (App. A.1).
+
+    external_object: strip whitespace, drop a leading "/testbed/" or "./", then posixpath.normpath.
+    other types: collapse runs of whitespace to one space and strip.
+    Result: f"{carrier_type.value}:{normalized}".
+    """
+    if carrier_type == CarrierType.EXTERNAL_OBJECT:
+        s = subject.strip()
+        if s.startswith("/testbed/"):
+            s = s.removeprefix("/testbed/")
+        elif s.startswith("./"):
+            s = s.removeprefix("./")
+        normalized = posixpath.normpath(s)
+    else:
+        normalized = " ".join(subject.split())
+    return f"{carrier_type.value}:{normalized}"
 
 
 class CarrierStore:
@@ -20,6 +39,34 @@ class CarrierStore:
 
     def history(self, carrier_id: str) -> list[CarrierRecord]:
         return list(self._history.get(carrier_id, []))
+
+    def materialize(self, edits: list[CarrierEdit], fold_number: int) -> list[CarrierRecord]:
+        """Turn edits into records: version 1 for new carriers, current + 1 (predecessor = current) for updates.
+        Does not change the store."""
+        records: list[CarrierRecord] = []
+        for edit in edits:
+            cid = edit.carrier_id or make_carrier_id(edit.carrier_type, edit.subject)
+            current = self.get(cid)
+            if current is None:
+                version = 1
+                predecessor_version = None
+            else:
+                version = current.version + 1
+                predecessor_version = current.version
+            records.append(
+                CarrierRecord(
+                    carrier_id=cid,
+                    version=version,
+                    predecessor_version=predecessor_version,
+                    carrier_type=edit.carrier_type,
+                    subject=edit.subject,
+                    summary=edit.summary,
+                    conditions=list(edit.conditions),
+                    claims=list(edit.claims),
+                    committed_at_fold=fold_number,
+                )
+            )
+        return records
 
     def apply(self, edits: list[CarrierRecord]) -> None:
         """Commit carrier edits atomically: validate all first, then write all.

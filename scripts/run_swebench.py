@@ -13,7 +13,7 @@ import dotenv
 import typer
 
 from carrycode.config import REPO_ROOT, build_mswea_config, load_experiment, load_models, setup_provider
-from carrycode.swebench import load_instances, read_instance_ids, run_instance
+from carrycode.swebench import DATASETS, load_instances, read_instance_ids, run_instance
 
 app = typer.Typer(add_completion=False)
 
@@ -45,7 +45,7 @@ def main(
         print("nothing to run")
         return
 
-    rows = load_instances(ids)
+    rows = load_instances(ids, dataset=DATASETS[exp.benchmark])
 
     def _run(row: dict):
         return run_instance(row, exp, models, cfg, out_dir)

@@ -1,0 +1,8 @@
+# Long-horizon test: plain mini-swe-agent on 6 HARD-51 Python tasks (SWE-bench Pro V2) with GPT-6 Luna.
+name: hard_luna
+agent: default
+benchmark: pro
+models: configs/models/luna.yaml
+agent_config: swebench
+step_limit: 250                  # mini-swe-agent SWE-bench default; Pro leaderboard turn cap
+cost_limit: 5.0                  # nominal (subscription), high enough not to bind before step_limit

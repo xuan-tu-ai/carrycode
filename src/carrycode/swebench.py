@@ -20,7 +20,11 @@ from carrycode.config import ExperimentConfig, ModelsConfig
 from carrycode.factory import build_agent
 from carrycode.metrics import TaskUsage, trajectory_usage
 
-DATASET = "princeton-nlp/SWE-Bench_Verified"
+DATASETS = {
+    "verified": "princeton-nlp/SWE-Bench_Verified",
+    "pro": "ScaleAI/SWE-bench_Pro",
+}
+DATASET = DATASETS["verified"]
 logger = logging.getLogger("carrycode.swebench")
 _USAGE_LOCK = threading.Lock()
 
@@ -49,6 +53,16 @@ def load_instances(ids: list[str], dataset: str = DATASET, split: str = "test") 
 
 def default_model_factory(mswea_config: dict):
     return get_model(config=mswea_config.get("model", {}))
+
+
+def task_text(instance: dict) -> str:
+    """Problem statement, plus the Pro `requirements` and `interface` sections when present and non-empty."""
+    text = str(instance.get("problem_statement") or "").strip()
+    for heading, field in (("Requirements", "requirements"), ("Interface", "interface")):
+        section = str(instance.get(field) or "").strip()
+        if section:
+            text += f"\n\n## {heading}\n{section}"
+    return text
 
 
 def run_instance(
@@ -80,7 +94,7 @@ def run_instance(
         model = model_factory(mswea_config)
         env = env_factory(mswea_config, instance)
         agent = build_agent(exp, models, mswea_config, model, env, output_path=traj_path)
-        info = agent.run(instance["problem_statement"])
+        info = agent.run(task_text(instance))
         exit_status = info.get("exit_status")
         submission = info.get("submission") or ""
     except Exception as e:
@@ -103,3 +117,12 @@ def run_instance(
         with open(out_dir / "usage.jsonl", "a") as f:
             f.write(usage.model_dump_json() + "\n")
     return usage
+
+
+def to_pro_patches(preds: dict, prefix: str) -> list[dict]:
+    """mini-swe-agent preds.json -> SWE-bench Pro evaluator input; skips empty patches."""
+    return [
+        {"instance_id": iid, "patch": entry["model_patch"], "prefix": prefix}
+        for iid, entry in sorted(preds.items())
+        if entry.get("model_patch")
+    ]

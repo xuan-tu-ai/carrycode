@@ -12,7 +12,7 @@ Model choices changed after that plan was written; `decisions.md` is authoritati
 | M0 Setup | 1–2 | Plain mini-swe-agent + DeepSeek runs 3 SWE-bench Verified tasks via `scripts/run_swebench.py` |
 | M1 Fold skeleton | 3–5 | Tracker and Compiler produce valid JSON; a fold commits without breaking the message log |
 | M2 Carriers + Grounder | 6–9 | Validator complete; coding checks used in folds; offline tests pass |
-| M3 Evaluation | 10–12 | Results for all four configs in `configs/experiments/` |
+| M3 Evaluation | 10–12 | Results for all four configs on a SWE-bench Pro (Python) subset sized to a <$50 budget |
 | M4 Release | 13–14 | README with results, short report, issue opened on the original CarryOn repo |
 
 ## M0 checklist
@@ -20,6 +20,22 @@ Model choices changed after that plan was written; `decisions.md` is authoritati
 - [x] `uv sync`, `uv run pytest` pass
 - [x] Docker works without sudo
 - [x] Confirm DeepSeek model id and price in `configs/models/deepseek.yaml`
-- [ ] Implement `scripts/run_swebench.py` for the `baseline` config
-- [ ] Run 3 instances; run the official SWE-bench harness on `preds.json`
-- [ ] Record tokens and cost per task; update the budget estimate
+- [x] Implement `scripts/run_swebench.py` for the `baseline` config
+- [x] Run 3 instances; run the official SWE-bench harness on `preds.json`
+- [x] Record tokens and cost per task; update the budget estimate
+
+## M1 checklist
+
+- [x] Tracker and Compiler prompts (own wording, not Appendix D)
+- [x] `Tracker.scan`, `Compiler.compile`, `CarryOnRuntime.fold` with atomic commit
+- [x] Runtime state saved in trajectories (`info.carryon`)
+- [x] Offline end-to-end fold test (`tests/test_fold_e2e.py`)
+- [x] Real `carryon_full` run on the 3 M0 instances (T020; no fold committed, see decisions.md)
+
+## M3 prep checklist (see decisions.md, 2026-10-23 SWE-bench Pro entry)
+
+- [x] Pilot model configs with `reasoning_effort: max` (T022)
+- [x] SWE-bench Pro support in the runner (T023)
+- [x] Pilot experiments, pilot instances, Pro evaluation input (T024)
+- [ ] Local V2 grader; agent containers without network (T026)
+- [ ] Pilot run: 4 hosts × 3 Pro tasks; pick the model (T025, manual; paused until Token Harbor allowance returns)

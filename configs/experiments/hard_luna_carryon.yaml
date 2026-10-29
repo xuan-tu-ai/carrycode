@@ -1,0 +1,13 @@
+# Long-horizon test: CarryOn v2 on the same 6 HARD-51 Python tasks; GPT-6 Luna for host, Tracker and Compiler.
+name: hard_luna_carryon
+agent: carryon
+benchmark: pro
+models: configs/models/luna.yaml
+agent_config: swebench
+step_limit: 250
+cost_limit: 5.0
+runtime:
+  trigger_tokens: 24000          # v2 setting (decisions.md, 2026-10-27)
+  keep_recent_tokens: 8000
+  max_requests_per_scan: 4       # paper Table 7
+  use_code_checks: true          # stored; the Grounder is not wired into folds yet (M2)

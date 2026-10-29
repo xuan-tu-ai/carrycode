@@ -1,0 +1,8 @@
+# Pilot (T025, Luna stand-in while Token Harbor is out): plain mini-swe-agent on SWE-bench Pro with GPT-6 Luna.
+name: pilot_luna
+agent: default
+benchmark: pro
+models: configs/models/luna.yaml
+agent_config: swebench
+step_limit: 150
+cost_limit: 1.5

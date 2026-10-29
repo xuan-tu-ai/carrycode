@@ -1,0 +1,23 @@
+# GPT-6 Luna through the ChatGPT (Codex) subscription, via LiteLLM's `chatgpt/` provider; host and runtime roles.
+# Stopgap while the Token Harbor allowance is used up (decisions.md, 2026-10-25). Sign-in: LiteLLM device login,
+# tokens in ~/.config/litellm/chatgpt/auth.json (separate from Codex/omp). Billed per subscription, not per token:
+# costs below are nominal, at Token Harbor's gpt-6-luna price, so `cost_limit` and budgets stay meaningful.
+price_registry: configs/models/litellm_registry.json
+env:
+  # LiteLLM otherwise prepends a ~7.6 KB "You are Codex ... in the Codex CLI" prompt to every request.
+  CHATGPT_DEFAULT_INSTRUCTIONS: "You are a helpful assistant."
+
+host:
+  model_name: "chatgpt/gpt-6-luna"
+  model_kwargs:
+    drop_params: true
+    timeout: 600
+    reasoning_effort: "max"
+  cost_tracking: "default"
+
+runtime:
+  model_name: "chatgpt/gpt-6-luna"
+  model_kwargs:
+    drop_params: true
+    timeout: 600
+    reasoning_effort: "max"

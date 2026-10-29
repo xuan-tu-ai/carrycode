@@ -4,9 +4,8 @@ Guidance for Claude Code working in this repository.
 
 ## What this project is
 
-carrycode reimplements the CarryOn context runtime (arXiv:2610.18784) for coding agents, on top of
-mini-swe-agent, and evaluates it on 20–30 SWE-bench Verified tasks. The original code is NOT
-public. Everything is built from the paper. `docs/paper_map.md` maps paper sections to modules.
+carrycode reimplements and improves the CarryOn context runtime (arXiv:2610.18784) for coding agents, on top of
+mini-swe-agent, and evaluates it on 20–30 SWE-bench Verified tasks.
 
 ## Hard rules
 
@@ -53,8 +52,8 @@ uv run python scripts/run_swebench.py --help   # once implemented
 
 ## Current milestone
 
-M0: run plain mini-swe-agent with DeepSeek on 3 SWE-bench Verified tasks.
-Then M1: `CarryOnAgent.query` + fold skeleton. See `docs/plan.md`.
+M0 done (baseline 3/3 resolved, Haiku 5.5). M1: fold skeleton done offline; real run pending (docs/tasks/T020).
+Next: M2 (Grounder checks in folds). See `docs/plan.md`.
 
 ## Style
 
