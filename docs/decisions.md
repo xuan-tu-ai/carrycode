@@ -2,6 +2,17 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-10-30: `carrycode run` for local repositories; README for community use
+
+- Added a `carrycode` console script (`src/carrycode/cli.py`). `carrycode run` runs `InteractiveCarryOnAgent`
+  (mini-swe-agent's `InteractiveAgent` loop over `CarryOnAgent`) in a local repo with `LocalEnvironment` and the
+  builtin `mini.yaml` templates. Install with `uv tool install git+https://github.com/xuan-tu-ai/carrycode`.
+- Models: any LiteLLM id via `--model`, runtime roles default to the same model (`--runtime-model` to override),
+  or a `configs/models/`-style file via `--models`. Runtime defaults are the v2 settings (trigger 24k, keep 8k).
+- `factory.make_runtime(settings, role)` builds the runtime without an `ExperimentConfig`.
+- The README is now user-facing: install, usage, model choice, the paper's reported results. It does not
+  claim carrycode reproduces them; our own measurements stay in this log.
+
 ## 2026-10-27: Long-horizon test, 6 HARD-51 Python tasks (CarryOn v2 vs baseline, GPT-6 Luna)
 
 - Setup: `hard_luna` vs `hard_luna_carryon` (trigger 24k, keep 8k), `step_limit: 250`, offline agent, V2 grader;

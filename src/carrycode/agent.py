@@ -9,6 +9,7 @@ from __future__ import annotations
 import time
 
 from minisweagent.agents.default import AgentConfig, DefaultAgent
+from minisweagent.agents.interactive import InteractiveAgent, console
 from minisweagent.exceptions import LimitsExceeded, TimeExceeded
 
 from carrycode.runtime import CarryOnRuntime
@@ -112,3 +113,27 @@ class CarryOnAgent(ViewAgent):
                     kept_suffix = self.messages[self.fold_index :]
                     self.runtime.on_fold_committed(baseline_tokens=estimate_tokens(kept_suffix))
         return super().query()
+
+
+class InteractiveCarryOnAgent(InteractiveAgent, CarryOnAgent):
+    """CarryOnAgent with mini-swe-agent's terminal loop (confirm/yolo/human modes), for `carrycode run`.
+
+    MRO: InteractiveAgent.query handles human mode and limit prompts, then calls CarryOnAgent.query,
+    which folds before the model call.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._announced_folds = 0
+
+    def build_view(self) -> list[dict]:
+        # Called once per model call, right after any fold, so a new fold is announced before the reply.
+        committed = self.runtime.stats.committed
+        if committed > self._announced_folds:
+            self._announced_folds = committed
+            console.print(
+                f"\n[bold blue]carryon[/bold blue]: fold {committed} committed; "
+                f"the live tail now starts at message {self.fold_index}.",
+                highlight=False,
+            )
+        return super().build_view()

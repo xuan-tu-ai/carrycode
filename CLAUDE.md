@@ -33,7 +33,8 @@ mini-swe-agent, and evaluates it on 20–30 SWE-bench Verified tasks.
 uv sync                      # install
 uv run pytest                # tests
 uv run ruff check . && uv run ruff format .
-uv run python scripts/run_swebench.py --help   # once implemented
+uv run python scripts/run_swebench.py --help
+uv run carrycode run --help                    # local CLI
 ```
 
 ## Layout
@@ -42,6 +43,7 @@ uv run python scripts/run_swebench.py --help   # once implemented
 - `src/carrycode/registry.py`: candidate registry and versioned carrier store
 - `src/carrycode/view.py`: builds the context view; live-tail boundary helper
 - `src/carrycode/agent.py`: `CarryOnAgent` and `SlidingWindowAgent` (subclasses of `DefaultAgent`)
+- `src/carrycode/cli.py`: `carrycode run`, the CarryOn agent in a local repo (`InteractiveCarryOnAgent`)
 - `src/carrycode/runtime.py`: fold orchestration (trigger → Tracker → Grounder → Compiler → Validator → commit)
 - `src/carrycode/tracker.py`, `compiler.py`, `validator.py`: runtime roles
 - `src/carrycode/grounder/`: verdict rules (`base.py`) and coding checks (files, git, tests)
