@@ -15,6 +15,9 @@ dependencies = [
     "typer",
 ]
 
+[project.scripts]
+carrycode = "carrycode.cli:app"
+
 [project.urls]
 Repository = "https://github.com/xuan-tu-ai/carrycode"
 

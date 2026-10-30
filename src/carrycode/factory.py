@@ -8,7 +8,7 @@ from minisweagent.agents.default import DefaultAgent
 
 from carrycode.agent import CarryOnAgent, SlidingWindowAgent
 from carrycode.compiler import Compiler
-from carrycode.config import ExperimentConfig, ModelsConfig
+from carrycode.config import ExperimentConfig, ModelsConfig, RoleModelConfig, RuntimeSettings
 from carrycode.llm import RoleLLM
 from carrycode.runtime import CarryOnRuntime
 from carrycode.tracker import Tracker
@@ -18,18 +18,22 @@ def build_runtime(exp: ExperimentConfig, models: ModelsConfig) -> CarryOnRuntime
     """Tracker and Compiler share the runtime model (docs/decisions.md: one model for both roles)."""
     if exp.runtime is None:
         raise ValueError(f"experiment {exp.name} has no runtime settings")
-    role = models.runtime
+    return make_runtime(exp.runtime, models.runtime)
+
+
+def make_runtime(settings: RuntimeSettings, role: RoleModelConfig) -> CarryOnRuntime:
+    """Build the runtime from its settings and the model shared by the Tracker and the Compiler."""
     tracker = Tracker(
         RoleLLM(role.model_name, role.model_kwargs),
-        max_requests_per_scan=exp.runtime.max_requests_per_scan,
+        max_requests_per_scan=settings.max_requests_per_scan,
     )
     compiler = Compiler(RoleLLM(role.model_name, role.model_kwargs))
     return CarryOnRuntime(
         tracker,
         compiler,
-        trigger_tokens=exp.runtime.trigger_tokens,
-        keep_recent_tokens=exp.runtime.keep_recent_tokens,
-        use_code_checks=exp.runtime.use_code_checks,
+        trigger_tokens=settings.trigger_tokens,
+        keep_recent_tokens=settings.keep_recent_tokens,
+        use_code_checks=settings.use_code_checks,
     )
 
 
