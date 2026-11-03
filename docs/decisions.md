@@ -2,6 +2,19 @@
 
 Newest first. Add an entry whenever a design choice changes.
 
+## 2026-11-03: dsh-carryon, CarryOn as a DeepSeek Harness compaction plugin (design only)
+
+- Goal: a UI for CarryOn through DeepSeek Harness (dsh, MIT) instead of only `carrycode run`.
+  Design: [`docs/design/dsh-plugin.md`](design/dsh-plugin.md).
+- Plugin, not fork: subclass dsh's `BasicCompactionEngine` and override its documented `summarize()` hook;
+  dsh keeps the trigger, verbatim tail, lock bracket and tool-pair edges.
+- Port the runtime to TypeScript in a separate repo (`dsh-carryon`). Rejected: a Python plugin (the dsh Python
+  SDK is a JSON-RPC client; plugins are JS Cordis packages) and a Python sidecar (extra install, model calls
+  outside `ctx.llm`).
+- carrycode stays the reference runtime and the source of the prompts; parity fixtures keep the two in step.
+- Fold state is stored in `compaction/summary.rawOutput`; `appendPluginRecord` is reserved for dsh's own
+  experimental packages.
+
 ## 2026-10-30: `carrycode run` for local repositories; README for community use
 
 - Added a `carrycode` console script (`src/carrycode/cli.py`). `carrycode run` runs `InteractiveCarryOnAgent`
