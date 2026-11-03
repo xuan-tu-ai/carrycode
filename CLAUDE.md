@@ -51,6 +51,7 @@ uv run carrycode run --help                    # local CLI
 - `configs/models/`: one YAML per model; `configs/experiments/`: one YAML per evaluated configuration
 - `scripts/`: SWE-bench runner, subset selection, summaries
 - `docs/decisions.md`: decision log. Add an entry when a design choice changes.
+- `docs/design/`: design docs for planned work (e.g. `dsh-plugin.md`, the DeepSeek Harness plugin)
 
 ## Current milestone
 
