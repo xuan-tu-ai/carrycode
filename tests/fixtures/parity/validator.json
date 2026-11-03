@@ -1,0 +1,1077 @@
+{
+  "format": 1,
+  "module": "validator",
+  "cases": [
+    {
+      "op": "validate",
+      "name": "valid new carrier",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s"
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": []
+      },
+      "expected": []
+    },
+    {
+      "op": "validate",
+      "name": "valid update",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s2",
+              "carrier_id": "external_object:src/a.py",
+              "base_version": 1
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": []
+    },
+    {
+      "op": "validate",
+      "name": "abstain and no edits",
+      "input": {
+        "output": {
+          "carrier_edits": [],
+          "execution_context": {},
+          "abstain_reason": "not enough evidence"
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": []
+      },
+      "expected": [
+        "compiler abstained: not enough evidence",
+        "a fold must change at least one carrier"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "candidate not selected",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C9",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s"
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": []
+      },
+      "expected": [
+        "external_object:src/a.py: candidate C9 was not selected"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "existing carrier without update fields",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s"
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": [
+        "external_object:src/a.py: carrier exists; an update must set carrier_id and base_version"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "new carrier with base_version",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s",
+              "base_version": 1
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": []
+      },
+      "expected": [
+        "external_object:src/a.py: a new carrier must not set base_version"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "existing carrier without carrier_id, with base_version",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s",
+              "base_version": 1
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": [
+        "external_object:src/a.py: carrier exists; an update must set carrier_id and base_version",
+        "external_object:src/a.py: a new carrier must not set base_version"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "update of an unknown carrier",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s",
+              "carrier_id": "external_object:src/zzz.py",
+              "base_version": 1
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": []
+      },
+      "expected": [
+        "external_object:src/zzz.py: unknown carrier"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "update may not change the subject",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/b.py",
+              "summary": "s2",
+              "carrier_id": "external_object:src/a.py",
+              "base_version": 1
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": [
+        "external_object:src/a.py: an update must keep the carrier's type and subject"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "update may not change the type",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "situated_state",
+              "subject": "src/a.py",
+              "summary": "s2",
+              "carrier_id": "external_object:src/a.py",
+              "base_version": 1
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": [
+        "external_object:src/a.py: an update must keep the carrier's type and subject"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "update with an equivalent subject is fine",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "./src//a.py",
+              "summary": "s2",
+              "carrier_id": "external_object:src/a.py",
+              "base_version": 1
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": []
+    },
+    {
+      "op": "validate",
+      "name": "stale base_version",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "x",
+              "carrier_id": "external_object:src/a.py",
+              "base_version": 3
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": [
+        "external_object:src/a.py: stale base_version 3 (current v1)"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "missing base_version on update",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "x",
+              "carrier_id": "external_object:src/a.py"
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": [
+        "external_object:src/a.py: stale base_version None (current v1)"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "edit that changes nothing",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s",
+              "carrier_id": "external_object:src/a.py",
+              "base_version": 1,
+              "conditions": [
+                "c"
+              ]
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": [
+        "external_object:src/a.py: edit does not change the carrier"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "changing only the conditions is a change",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s",
+              "carrier_id": "external_object:src/a.py",
+              "base_version": 1,
+              "conditions": [
+                "c",
+                "d"
+              ]
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": []
+    },
+    {
+      "op": "validate",
+      "name": "same carrier edited twice",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s"
+            },
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "./src/a.py",
+              "summary": "t"
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": []
+      },
+      "expected": [
+        "external_object:src/a.py: edited twice in one fold"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "claims citing unauthorized steps",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C2",
+              "carrier_type": "information_product",
+              "subject": "cause",
+              "summary": "s",
+              "claims": [
+                {
+                  "claim_id": "k1",
+                  "proposition": "p",
+                  "source_steps": [
+                    3
+                  ]
+                },
+                {
+                  "claim_id": "k2",
+                  "proposition": "p",
+                  "source_steps": [
+                    9,
+                    2,
+                    3,
+                    9
+                  ]
+                }
+              ]
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": []
+      },
+      "expected": [
+        "information_product:cause/k2: cites unauthorized steps [2, 9]"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "several problems keep their order",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C7",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s",
+              "base_version": 2,
+              "claims": [
+                {
+                  "claim_id": "k1",
+                  "proposition": "p",
+                  "source_steps": [
+                    4
+                  ]
+                }
+              ]
+            },
+            {
+              "candidate_id": "C7",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s",
+              "base_version": 2
+            }
+          ],
+          "execution_context": {},
+          "abstain_reason": "x"
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            },
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "cause",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ],
+          "evidence": {
+            "3": "out",
+            "5": "more"
+          }
+        },
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s",
+            "conditions": [
+              "c"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": [
+        "compiler abstained: x",
+        "external_object:src/a.py: candidate C7 was not selected",
+        "external_object:src/a.py: carrier exists; an update must set carrier_id and base_version",
+        "external_object:src/a.py: a new carrier must not set base_version",
+        "external_object:src/a.py/k1: cites unauthorized steps [4]",
+        "external_object:src/a.py: candidate C7 was not selected",
+        "external_object:src/a.py: edited twice in one fold",
+        "external_object:src/a.py: carrier exists; an update must set carrier_id and base_version",
+        "external_object:src/a.py: a new carrier must not set base_version"
+      ]
+    },
+    {
+      "op": "validate",
+      "name": "empty evidence authorizes no steps",
+      "input": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s",
+              "claims": [
+                {
+                  "claim_id": "k1",
+                  "proposition": "p",
+                  "source_steps": [
+                    3
+                  ]
+                }
+              ]
+            }
+          ],
+          "execution_context": {}
+        },
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/a.py",
+              "description": "d",
+              "first_seen_step": 2,
+              "last_revised_step": 3
+            }
+          ]
+        },
+        "store": []
+      },
+      "expected": [
+        "external_object:src/a.py/k1: cites unauthorized steps [3]"
+      ]
+    }
+  ]
+}
