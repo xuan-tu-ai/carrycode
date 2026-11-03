@@ -21,9 +21,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from carrycode.compiler import CompilerOutput, EvidencePackage
-from carrycode.records import CarrierEdit, CarrierRecord, CarrierType, ExecutionContext
+from carrycode.compiler import Compiler, CompilerOutput, EvidencePackage, build_compiler_user_message
+from carrycode.llm import strip_code_fence
+from carrycode.records import Candidate, CarrierEdit, CarrierRecord, CarrierType, ExecutionContext
 from carrycode.registry import CarrierStore, make_carrier_id
+from carrycode.testing import ScriptedRoleLLM
+from carrycode.tracker import Tracker, build_tracker_user_message
 from carrycode.validator import validate
 from carrycode.view import estimate_tokens, message_text, project_tail, render_checkpoint, step_texts
 
@@ -370,7 +373,164 @@ def view_cases() -> list[dict[str, Any]]:
     return cases
 
 
-MODULES = {"registry": registry_cases, "validator": validator_cases, "view": view_cases}
+# --- roles ------------------------------------------------------------------------------------------------------
+
+
+def roles_cases() -> list[dict[str, Any]]:
+    """Runtime-role I/O: user messages, JSON reply parsing with one retry, and the Tracker's output filtering."""
+    cases: list[dict[str, Any]] = []
+
+    for name, text in [
+        ("json fence", '```json\n{"a": 1}\n```'),
+        ("bare fence", '```\n{"a": 1}\n```'),
+        ("fence with surrounding whitespace and no newline before the close", '  ```json\n{"a": 1}```  \n'),
+        ("no fence", '{"a": 1}'),
+        ("text after the fence is not stripped", '```json\n{"a": 1}\n```\nThanks!'),
+        ("multi-line body", '```JSON\n{\n  "a": [1,\n 2]\n}\n```'),
+    ]:
+        cases.append(case("strip_code_fence", name, {"text": text}, strip_code_fence(text)))
+
+    cand = {
+        "candidate_id": "C1",
+        "provisional_type": EO,
+        "subject": "src/parser.py",
+        "description": "fix the off-by-one – naïve loop",
+        "supporting_steps": [12, 14],
+        "first_seen_step": 12,
+        "last_revised_step": 14,
+    }
+    cand2 = {**cand, "candidate_id": "C2", "provisional_type": IP, "subject": "root cause", "target_carrier_id": None}
+    carrier = record(IP, "root cause", summary="loop stops early 🙂", conditions=["py3.11"])
+    ec = {
+        "current_focus": ["fix parser"],
+        "active_constraints": ["no test edits"],
+        "obligations": [
+            {"obligation_id": "o1", "text": "run the suite"},
+            {"obligation_id": "o2", "text": "already done", "resolved": True},
+        ],
+        "immediate_continuation": ["rerun pytest"],
+    }
+    tail = "[step 12] assistant: look\n\n[step 13] tool: out"
+
+    def tracker_message_case(name: str, candidates: list, carriers: list, ec_in: dict, max_requests: int) -> None:
+        text = build_tracker_user_message(
+            "Fix the parser — résumé task",
+            tail,
+            [Candidate.model_validate(c) for c in candidates],
+            [CarrierRecord.model_validate(c) for c in carriers],
+            ExecutionContext.model_validate(ec_in),
+            max_requests,
+        )
+        cases.append(
+            case(
+                "tracker_user_message",
+                name,
+                {
+                    "task": "Fix the parser — résumé task",
+                    "live_tail_text": tail,
+                    "candidates": candidates,
+                    "carriers": carriers,
+                    "ec": ec_in,
+                    "max_requests": max_requests,
+                },
+                text,
+            )
+        )
+
+    tracker_message_case("empty registry, store and context", [], [], {}, 4)
+    tracker_message_case("full inputs, non-ASCII escaped", [cand, cand2], [carrier], ec, 2)
+
+    package = {
+        "candidates": [cand],
+        "prior_records": [carrier],
+        "evidence": {"10": "ten", "9": "nine 🙂", "12": "twelve"},
+    }
+    for name, pkg in [
+        ("evidence sorted by step number", package),
+        ("no prior records, no evidence", {"candidates": [cand]}),
+    ]:
+        text = build_compiler_user_message(
+            EvidencePackage.model_validate(pkg), ExecutionContext.model_validate(ec), tail
+        )
+        cases.append(case("compiler_user_message", name, {"package": pkg, "ec": ec, "live_tail_text": tail}, text))
+
+    good_scan = {
+        "candidate_updates": [cand2],
+        "compile_requests": [
+            {"candidate_id": "C1", "evidence_steps": [12, 13]},
+            {"candidate_id": "C9", "evidence_steps": [1]},
+            {"candidate_id": "C2", "evidence_steps": [13], "checks": [{"check_name": "file_exists", "target": "a"}]},
+            {"candidate_id": "C1", "evidence_steps": [14]},
+        ],
+        "resolved_obligation_ids": ["o1", "o2", "o9"],
+        "ignored_key": True,
+    }
+
+    def scan_case(name: str, replies: list[str], max_requests: int = 2) -> None:
+        llm = ScriptedRoleLLM(list(replies))
+        out = Tracker(llm, max_requests_per_scan=max_requests).scan(
+            "task",
+            tail,
+            [Candidate.model_validate(cand)],
+            [CarrierRecord.model_validate(carrier)],
+            ExecutionContext.model_validate(ec),
+        )
+        cases.append(
+            case(
+                "tracker_scan",
+                name,
+                {
+                    "task": "task",
+                    "live_tail_text": tail,
+                    "candidates": [cand],
+                    "carriers": [carrier],
+                    "ec": ec,
+                    "max_requests": max_requests,
+                    "replies": replies,
+                },
+                {"output": out.model_dump(mode="json"), "calls": llm.usage.calls},
+            )
+        )
+
+    scan_case("filters unknown candidates, caps requests, keeps open obligations", [json.dumps(good_scan)])
+    scan_case("fenced reply is parsed", ["```json\n" + json.dumps(good_scan) + "\n```"], max_requests=4)
+    scan_case("invalid JSON is retried once", ["{not json", json.dumps({"compile_requests": []})])
+    scan_case("schema violation is retried once", [json.dumps({"compile_requests": [{"evidence_steps": [1]}]}), "{}"])
+    scan_case("two invalid replies give an empty output", ["nope", "[]"])
+    scan_case("a JSON array is not an object", ["[1, 2]", "{}"])
+
+    good_compile = {
+        "carrier_edits": [
+            {"candidate_id": "C1", "carrier_type": EO, "subject": "src/parser.py", "summary": "patched", "x": 1}
+        ],
+        "execution_context": {"current_focus": ["verify"], "obligations": [{"obligation_id": "o3", "text": "t"}]},
+    }
+
+    def compile_case(name: str, replies: list[str]) -> None:
+        llm = ScriptedRoleLLM(list(replies))
+        out = Compiler(llm).compile(EvidencePackage.model_validate(package), ExecutionContext.model_validate(ec), tail)
+        cases.append(
+            case(
+                "compiler_compile",
+                name,
+                {"package": package, "ec": ec, "live_tail_text": tail, "replies": replies},
+                {"output": out.model_dump(mode="json"), "calls": llm.usage.calls},
+            )
+        )
+
+    compile_case("valid reply", [json.dumps(good_compile)])
+    compile_case("model abstains", [json.dumps({"execution_context": {}, "abstain_reason": "no evidence"})])
+    compile_case("missing execution_context is retried", [json.dumps({"carrier_edits": []}), json.dumps(good_compile)])
+    compile_case("invalid output abstains and keeps the context", ["bad", "worse"])
+    return cases
+
+
+MODULES = {
+    "registry": registry_cases,
+    "validator": validator_cases,
+    "view": view_cases,
+    "roles": roles_cases,
+}
 
 
 def render_all() -> dict[str, str]:
