@@ -1,0 +1,1151 @@
+{
+  "format": 1,
+  "module": "roles",
+  "cases": [
+    {
+      "op": "strip_code_fence",
+      "name": "json fence",
+      "input": {
+        "text": "```json\n{\"a\": 1}\n```"
+      },
+      "expected": "{\"a\": 1}"
+    },
+    {
+      "op": "strip_code_fence",
+      "name": "bare fence",
+      "input": {
+        "text": "```\n{\"a\": 1}\n```"
+      },
+      "expected": "{\"a\": 1}"
+    },
+    {
+      "op": "strip_code_fence",
+      "name": "fence with surrounding whitespace and no newline before the close",
+      "input": {
+        "text": "  ```json\n{\"a\": 1}```  \n"
+      },
+      "expected": "{\"a\": 1}"
+    },
+    {
+      "op": "strip_code_fence",
+      "name": "no fence",
+      "input": {
+        "text": "{\"a\": 1}"
+      },
+      "expected": "{\"a\": 1}"
+    },
+    {
+      "op": "strip_code_fence",
+      "name": "text after the fence is not stripped",
+      "input": {
+        "text": "```json\n{\"a\": 1}\n```\nThanks!"
+      },
+      "expected": "```json\n{\"a\": 1}\n```\nThanks!"
+    },
+    {
+      "op": "strip_code_fence",
+      "name": "multi-line body",
+      "input": {
+        "text": "```JSON\n{\n  \"a\": [1,\n 2]\n}\n```"
+      },
+      "expected": "{\n  \"a\": [1,\n 2]\n}"
+    },
+    {
+      "op": "tracker_user_message",
+      "name": "empty registry, store and context",
+      "input": {
+        "task": "Fix the parser — résumé task",
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "candidates": [],
+        "carriers": [],
+        "ec": {},
+        "max_requests": 4
+      },
+      "expected": "# Task\nFix the parser — résumé task\n\n# Current carriers\nnone\n\n# Candidates\nnone\n\n# Open obligations\nnone\n\n# Limits\nReturn at most 4 compile_requests.\n\n# Live tail\n[step 12] assistant: look\n\n[step 13] tool: out"
+    },
+    {
+      "op": "tracker_user_message",
+      "name": "full inputs, non-ASCII escaped",
+      "input": {
+        "task": "Fix the parser — résumé task",
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "candidates": [
+          {
+            "candidate_id": "C1",
+            "provisional_type": "external_object",
+            "subject": "src/parser.py",
+            "description": "fix the off-by-one – naïve loop",
+            "supporting_steps": [
+              12,
+              14
+            ],
+            "first_seen_step": 12,
+            "last_revised_step": 14
+          },
+          {
+            "candidate_id": "C2",
+            "provisional_type": "information_product",
+            "subject": "root cause",
+            "description": "fix the off-by-one – naïve loop",
+            "supporting_steps": [
+              12,
+              14
+            ],
+            "first_seen_step": 12,
+            "last_revised_step": 14,
+            "target_carrier_id": null
+          }
+        ],
+        "carriers": [
+          {
+            "carrier_id": "information_product:root cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "root cause",
+            "summary": "loop stops early 🙂",
+            "conditions": [
+              "py3.11"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "max_requests": 2
+      },
+      "expected": "# Task\nFix the parser — résumé task\n\n# Current carriers\n[\n  {\n    \"carrier_id\": \"information_product:root cause\",\n    \"version\": 1,\n    \"carrier_type\": \"information_product\",\n    \"subject\": \"root cause\",\n    \"summary\": \"loop stops early \\ud83d\\ude42\"\n  }\n]\n\n# Candidates\n[\n  {\n    \"candidate_id\": \"C1\",\n    \"provisional_type\": \"external_object\",\n    \"subject\": \"src/parser.py\",\n    \"description\": \"fix the off-by-one \\u2013 na\\u00efve loop\",\n    \"supporting_steps\": [\n      12,\n      14\n    ],\n    \"target_carrier_id\": null,\n    \"first_seen_step\": 12,\n    \"last_revised_step\": 14\n  },\n  {\n    \"candidate_id\": \"C2\",\n    \"provisional_type\": \"information_product\",\n    \"subject\": \"root cause\",\n    \"description\": \"fix the off-by-one \\u2013 na\\u00efve loop\",\n    \"supporting_steps\": [\n      12,\n      14\n    ],\n    \"target_carrier_id\": null,\n    \"first_seen_step\": 12,\n    \"last_revised_step\": 14\n  }\n]\n\n# Open obligations\n- [o1] run the suite\n\n# Limits\nReturn at most 2 compile_requests.\n\n# Live tail\n[step 12] assistant: look\n\n[step 13] tool: out"
+    },
+    {
+      "op": "compiler_user_message",
+      "name": "evidence sorted by step number",
+      "input": {
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/parser.py",
+              "description": "fix the off-by-one – naïve loop",
+              "supporting_steps": [
+                12,
+                14
+              ],
+              "first_seen_step": 12,
+              "last_revised_step": 14
+            }
+          ],
+          "prior_records": [
+            {
+              "carrier_id": "information_product:root cause",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "information_product",
+              "subject": "root cause",
+              "summary": "loop stops early 🙂",
+              "conditions": [
+                "py3.11"
+              ],
+              "claims": [],
+              "committed_at_fold": 1
+            }
+          ],
+          "evidence": {
+            "10": "ten",
+            "9": "nine 🙂",
+            "12": "twelve"
+          }
+        },
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out"
+      },
+      "expected": "# Selected candidates\n[\n  {\n    \"candidate_id\": \"C1\",\n    \"provisional_type\": \"external_object\",\n    \"subject\": \"src/parser.py\",\n    \"description\": \"fix the off-by-one \\u2013 na\\u00efve loop\",\n    \"supporting_steps\": [\n      12,\n      14\n    ],\n    \"target_carrier_id\": null,\n    \"first_seen_step\": 12,\n    \"last_revised_step\": 14\n  }\n]\n\n# Prior carrier records\n[\n  {\n    \"carrier_id\": \"information_product:root cause\",\n    \"version\": 1,\n    \"predecessor_version\": null,\n    \"carrier_type\": \"information_product\",\n    \"subject\": \"root cause\",\n    \"summary\": \"loop stops early \\ud83d\\ude42\",\n    \"conditions\": [\n      \"py3.11\"\n    ],\n    \"claims\": [],\n    \"committed_at_fold\": 1\n  }\n]\n\n# Evidence\n## step 9\nnine 🙂\n\n## step 10\nten\n\n## step 12\ntwelve\n\n# Current execution context\n{\n  \"current_focus\": [\n    \"fix parser\"\n  ],\n  \"active_constraints\": [\n    \"no test edits\"\n  ],\n  \"obligations\": [\n    {\n      \"obligation_id\": \"o1\",\n      \"text\": \"run the suite\",\n      \"source_steps\": [],\n      \"resolved\": false\n    },\n    {\n      \"obligation_id\": \"o2\",\n      \"text\": \"already done\",\n      \"source_steps\": [],\n      \"resolved\": true\n    }\n  ],\n  \"immediate_continuation\": [\n    \"rerun pytest\"\n  ]\n}\n\n# Live tail\n[step 12] assistant: look\n\n[step 13] tool: out"
+    },
+    {
+      "op": "compiler_user_message",
+      "name": "no prior records, no evidence",
+      "input": {
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/parser.py",
+              "description": "fix the off-by-one – naïve loop",
+              "supporting_steps": [
+                12,
+                14
+              ],
+              "first_seen_step": 12,
+              "last_revised_step": 14
+            }
+          ]
+        },
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out"
+      },
+      "expected": "# Selected candidates\n[\n  {\n    \"candidate_id\": \"C1\",\n    \"provisional_type\": \"external_object\",\n    \"subject\": \"src/parser.py\",\n    \"description\": \"fix the off-by-one \\u2013 na\\u00efve loop\",\n    \"supporting_steps\": [\n      12,\n      14\n    ],\n    \"target_carrier_id\": null,\n    \"first_seen_step\": 12,\n    \"last_revised_step\": 14\n  }\n]\n\n# Prior carrier records\nnone\n\n# Evidence\nnone\n\n# Current execution context\n{\n  \"current_focus\": [\n    \"fix parser\"\n  ],\n  \"active_constraints\": [\n    \"no test edits\"\n  ],\n  \"obligations\": [\n    {\n      \"obligation_id\": \"o1\",\n      \"text\": \"run the suite\",\n      \"source_steps\": [],\n      \"resolved\": false\n    },\n    {\n      \"obligation_id\": \"o2\",\n      \"text\": \"already done\",\n      \"source_steps\": [],\n      \"resolved\": true\n    }\n  ],\n  \"immediate_continuation\": [\n    \"rerun pytest\"\n  ]\n}\n\n# Live tail\n[step 12] assistant: look\n\n[step 13] tool: out"
+    },
+    {
+      "op": "tracker_scan",
+      "name": "filters unknown candidates, caps requests, keeps open obligations",
+      "input": {
+        "task": "task",
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "candidates": [
+          {
+            "candidate_id": "C1",
+            "provisional_type": "external_object",
+            "subject": "src/parser.py",
+            "description": "fix the off-by-one – naïve loop",
+            "supporting_steps": [
+              12,
+              14
+            ],
+            "first_seen_step": 12,
+            "last_revised_step": 14
+          }
+        ],
+        "carriers": [
+          {
+            "carrier_id": "information_product:root cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "root cause",
+            "summary": "loop stops early 🙂",
+            "conditions": [
+              "py3.11"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "max_requests": 2,
+        "replies": [
+          "{\"candidate_updates\": [{\"candidate_id\": \"C2\", \"provisional_type\": \"information_product\", \"subject\": \"root cause\", \"description\": \"fix the off-by-one \\u2013 na\\u00efve loop\", \"supporting_steps\": [12, 14], \"first_seen_step\": 12, \"last_revised_step\": 14, \"target_carrier_id\": null}], \"compile_requests\": [{\"candidate_id\": \"C1\", \"evidence_steps\": [12, 13]}, {\"candidate_id\": \"C9\", \"evidence_steps\": [1]}, {\"candidate_id\": \"C2\", \"evidence_steps\": [13], \"checks\": [{\"check_name\": \"file_exists\", \"target\": \"a\"}]}, {\"candidate_id\": \"C1\", \"evidence_steps\": [14]}], \"resolved_obligation_ids\": [\"o1\", \"o2\", \"o9\"], \"ignored_key\": true}"
+        ]
+      },
+      "expected": {
+        "output": {
+          "candidate_updates": [
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "root cause",
+              "description": "fix the off-by-one – naïve loop",
+              "supporting_steps": [
+                12,
+                14
+              ],
+              "target_carrier_id": null,
+              "first_seen_step": 12,
+              "last_revised_step": 14
+            }
+          ],
+          "compile_requests": [
+            {
+              "candidate_id": "C1",
+              "evidence_steps": [
+                12,
+                13
+              ],
+              "checks": []
+            },
+            {
+              "candidate_id": "C2",
+              "evidence_steps": [
+                13
+              ],
+              "checks": [
+                {
+                  "check_name": "file_exists",
+                  "target": "a",
+                  "expected": null
+                }
+              ]
+            }
+          ],
+          "resolved_obligation_ids": [
+            "o1"
+          ]
+        },
+        "calls": 1
+      }
+    },
+    {
+      "op": "tracker_scan",
+      "name": "fenced reply is parsed",
+      "input": {
+        "task": "task",
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "candidates": [
+          {
+            "candidate_id": "C1",
+            "provisional_type": "external_object",
+            "subject": "src/parser.py",
+            "description": "fix the off-by-one – naïve loop",
+            "supporting_steps": [
+              12,
+              14
+            ],
+            "first_seen_step": 12,
+            "last_revised_step": 14
+          }
+        ],
+        "carriers": [
+          {
+            "carrier_id": "information_product:root cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "root cause",
+            "summary": "loop stops early 🙂",
+            "conditions": [
+              "py3.11"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "max_requests": 4,
+        "replies": [
+          "```json\n{\"candidate_updates\": [{\"candidate_id\": \"C2\", \"provisional_type\": \"information_product\", \"subject\": \"root cause\", \"description\": \"fix the off-by-one \\u2013 na\\u00efve loop\", \"supporting_steps\": [12, 14], \"first_seen_step\": 12, \"last_revised_step\": 14, \"target_carrier_id\": null}], \"compile_requests\": [{\"candidate_id\": \"C1\", \"evidence_steps\": [12, 13]}, {\"candidate_id\": \"C9\", \"evidence_steps\": [1]}, {\"candidate_id\": \"C2\", \"evidence_steps\": [13], \"checks\": [{\"check_name\": \"file_exists\", \"target\": \"a\"}]}, {\"candidate_id\": \"C1\", \"evidence_steps\": [14]}], \"resolved_obligation_ids\": [\"o1\", \"o2\", \"o9\"], \"ignored_key\": true}\n```"
+        ]
+      },
+      "expected": {
+        "output": {
+          "candidate_updates": [
+            {
+              "candidate_id": "C2",
+              "provisional_type": "information_product",
+              "subject": "root cause",
+              "description": "fix the off-by-one – naïve loop",
+              "supporting_steps": [
+                12,
+                14
+              ],
+              "target_carrier_id": null,
+              "first_seen_step": 12,
+              "last_revised_step": 14
+            }
+          ],
+          "compile_requests": [
+            {
+              "candidate_id": "C1",
+              "evidence_steps": [
+                12,
+                13
+              ],
+              "checks": []
+            },
+            {
+              "candidate_id": "C2",
+              "evidence_steps": [
+                13
+              ],
+              "checks": [
+                {
+                  "check_name": "file_exists",
+                  "target": "a",
+                  "expected": null
+                }
+              ]
+            },
+            {
+              "candidate_id": "C1",
+              "evidence_steps": [
+                14
+              ],
+              "checks": []
+            }
+          ],
+          "resolved_obligation_ids": [
+            "o1"
+          ]
+        },
+        "calls": 1
+      }
+    },
+    {
+      "op": "tracker_scan",
+      "name": "invalid JSON is retried once",
+      "input": {
+        "task": "task",
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "candidates": [
+          {
+            "candidate_id": "C1",
+            "provisional_type": "external_object",
+            "subject": "src/parser.py",
+            "description": "fix the off-by-one – naïve loop",
+            "supporting_steps": [
+              12,
+              14
+            ],
+            "first_seen_step": 12,
+            "last_revised_step": 14
+          }
+        ],
+        "carriers": [
+          {
+            "carrier_id": "information_product:root cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "root cause",
+            "summary": "loop stops early 🙂",
+            "conditions": [
+              "py3.11"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "max_requests": 2,
+        "replies": [
+          "{not json",
+          "{\"compile_requests\": []}"
+        ]
+      },
+      "expected": {
+        "output": {
+          "candidate_updates": [],
+          "compile_requests": [],
+          "resolved_obligation_ids": []
+        },
+        "calls": 2
+      }
+    },
+    {
+      "op": "tracker_scan",
+      "name": "schema violation is retried once",
+      "input": {
+        "task": "task",
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "candidates": [
+          {
+            "candidate_id": "C1",
+            "provisional_type": "external_object",
+            "subject": "src/parser.py",
+            "description": "fix the off-by-one – naïve loop",
+            "supporting_steps": [
+              12,
+              14
+            ],
+            "first_seen_step": 12,
+            "last_revised_step": 14
+          }
+        ],
+        "carriers": [
+          {
+            "carrier_id": "information_product:root cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "root cause",
+            "summary": "loop stops early 🙂",
+            "conditions": [
+              "py3.11"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "max_requests": 2,
+        "replies": [
+          "{\"compile_requests\": [{\"evidence_steps\": [1]}]}",
+          "{}"
+        ]
+      },
+      "expected": {
+        "output": {
+          "candidate_updates": [],
+          "compile_requests": [],
+          "resolved_obligation_ids": []
+        },
+        "calls": 2
+      }
+    },
+    {
+      "op": "tracker_scan",
+      "name": "two invalid replies give an empty output",
+      "input": {
+        "task": "task",
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "candidates": [
+          {
+            "candidate_id": "C1",
+            "provisional_type": "external_object",
+            "subject": "src/parser.py",
+            "description": "fix the off-by-one – naïve loop",
+            "supporting_steps": [
+              12,
+              14
+            ],
+            "first_seen_step": 12,
+            "last_revised_step": 14
+          }
+        ],
+        "carriers": [
+          {
+            "carrier_id": "information_product:root cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "root cause",
+            "summary": "loop stops early 🙂",
+            "conditions": [
+              "py3.11"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "max_requests": 2,
+        "replies": [
+          "nope",
+          "[]"
+        ]
+      },
+      "expected": {
+        "output": {
+          "candidate_updates": [],
+          "compile_requests": [],
+          "resolved_obligation_ids": []
+        },
+        "calls": 2
+      }
+    },
+    {
+      "op": "tracker_scan",
+      "name": "a JSON array is not an object",
+      "input": {
+        "task": "task",
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "candidates": [
+          {
+            "candidate_id": "C1",
+            "provisional_type": "external_object",
+            "subject": "src/parser.py",
+            "description": "fix the off-by-one – naïve loop",
+            "supporting_steps": [
+              12,
+              14
+            ],
+            "first_seen_step": 12,
+            "last_revised_step": 14
+          }
+        ],
+        "carriers": [
+          {
+            "carrier_id": "information_product:root cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "root cause",
+            "summary": "loop stops early 🙂",
+            "conditions": [
+              "py3.11"
+            ],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "max_requests": 2,
+        "replies": [
+          "[1, 2]",
+          "{}"
+        ]
+      },
+      "expected": {
+        "output": {
+          "candidate_updates": [],
+          "compile_requests": [],
+          "resolved_obligation_ids": []
+        },
+        "calls": 2
+      }
+    },
+    {
+      "op": "compiler_compile",
+      "name": "valid reply",
+      "input": {
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/parser.py",
+              "description": "fix the off-by-one – naïve loop",
+              "supporting_steps": [
+                12,
+                14
+              ],
+              "first_seen_step": 12,
+              "last_revised_step": 14
+            }
+          ],
+          "prior_records": [
+            {
+              "carrier_id": "information_product:root cause",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "information_product",
+              "subject": "root cause",
+              "summary": "loop stops early 🙂",
+              "conditions": [
+                "py3.11"
+              ],
+              "claims": [],
+              "committed_at_fold": 1
+            }
+          ],
+          "evidence": {
+            "10": "ten",
+            "9": "nine 🙂",
+            "12": "twelve"
+          }
+        },
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "replies": [
+          "{\"carrier_edits\": [{\"candidate_id\": \"C1\", \"carrier_type\": \"external_object\", \"subject\": \"src/parser.py\", \"summary\": \"patched\", \"x\": 1}], \"execution_context\": {\"current_focus\": [\"verify\"], \"obligations\": [{\"obligation_id\": \"o3\", \"text\": \"t\"}]}}"
+        ]
+      },
+      "expected": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_id": null,
+              "base_version": null,
+              "carrier_type": "external_object",
+              "subject": "src/parser.py",
+              "summary": "patched",
+              "conditions": [],
+              "claims": []
+            }
+          ],
+          "execution_context": {
+            "current_focus": [
+              "verify"
+            ],
+            "active_constraints": [],
+            "obligations": [
+              {
+                "obligation_id": "o3",
+                "text": "t",
+                "source_steps": [],
+                "resolved": false
+              }
+            ],
+            "immediate_continuation": []
+          },
+          "abstain_reason": null
+        },
+        "calls": 1
+      }
+    },
+    {
+      "op": "compiler_compile",
+      "name": "model abstains",
+      "input": {
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/parser.py",
+              "description": "fix the off-by-one – naïve loop",
+              "supporting_steps": [
+                12,
+                14
+              ],
+              "first_seen_step": 12,
+              "last_revised_step": 14
+            }
+          ],
+          "prior_records": [
+            {
+              "carrier_id": "information_product:root cause",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "information_product",
+              "subject": "root cause",
+              "summary": "loop stops early 🙂",
+              "conditions": [
+                "py3.11"
+              ],
+              "claims": [],
+              "committed_at_fold": 1
+            }
+          ],
+          "evidence": {
+            "10": "ten",
+            "9": "nine 🙂",
+            "12": "twelve"
+          }
+        },
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "replies": [
+          "{\"execution_context\": {}, \"abstain_reason\": \"no evidence\"}"
+        ]
+      },
+      "expected": {
+        "output": {
+          "carrier_edits": [],
+          "execution_context": {
+            "current_focus": [],
+            "active_constraints": [],
+            "obligations": [],
+            "immediate_continuation": []
+          },
+          "abstain_reason": "no evidence"
+        },
+        "calls": 1
+      }
+    },
+    {
+      "op": "compiler_compile",
+      "name": "missing execution_context is retried",
+      "input": {
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/parser.py",
+              "description": "fix the off-by-one – naïve loop",
+              "supporting_steps": [
+                12,
+                14
+              ],
+              "first_seen_step": 12,
+              "last_revised_step": 14
+            }
+          ],
+          "prior_records": [
+            {
+              "carrier_id": "information_product:root cause",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "information_product",
+              "subject": "root cause",
+              "summary": "loop stops early 🙂",
+              "conditions": [
+                "py3.11"
+              ],
+              "claims": [],
+              "committed_at_fold": 1
+            }
+          ],
+          "evidence": {
+            "10": "ten",
+            "9": "nine 🙂",
+            "12": "twelve"
+          }
+        },
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "replies": [
+          "{\"carrier_edits\": []}",
+          "{\"carrier_edits\": [{\"candidate_id\": \"C1\", \"carrier_type\": \"external_object\", \"subject\": \"src/parser.py\", \"summary\": \"patched\", \"x\": 1}], \"execution_context\": {\"current_focus\": [\"verify\"], \"obligations\": [{\"obligation_id\": \"o3\", \"text\": \"t\"}]}}"
+        ]
+      },
+      "expected": {
+        "output": {
+          "carrier_edits": [
+            {
+              "candidate_id": "C1",
+              "carrier_id": null,
+              "base_version": null,
+              "carrier_type": "external_object",
+              "subject": "src/parser.py",
+              "summary": "patched",
+              "conditions": [],
+              "claims": []
+            }
+          ],
+          "execution_context": {
+            "current_focus": [
+              "verify"
+            ],
+            "active_constraints": [],
+            "obligations": [
+              {
+                "obligation_id": "o3",
+                "text": "t",
+                "source_steps": [],
+                "resolved": false
+              }
+            ],
+            "immediate_continuation": []
+          },
+          "abstain_reason": null
+        },
+        "calls": 2
+      }
+    },
+    {
+      "op": "compiler_compile",
+      "name": "invalid output abstains and keeps the context",
+      "input": {
+        "package": {
+          "candidates": [
+            {
+              "candidate_id": "C1",
+              "provisional_type": "external_object",
+              "subject": "src/parser.py",
+              "description": "fix the off-by-one – naïve loop",
+              "supporting_steps": [
+                12,
+                14
+              ],
+              "first_seen_step": 12,
+              "last_revised_step": 14
+            }
+          ],
+          "prior_records": [
+            {
+              "carrier_id": "information_product:root cause",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "information_product",
+              "subject": "root cause",
+              "summary": "loop stops early 🙂",
+              "conditions": [
+                "py3.11"
+              ],
+              "claims": [],
+              "committed_at_fold": 1
+            }
+          ],
+          "evidence": {
+            "10": "ten",
+            "9": "nine 🙂",
+            "12": "twelve"
+          }
+        },
+        "ec": {
+          "current_focus": [
+            "fix parser"
+          ],
+          "active_constraints": [
+            "no test edits"
+          ],
+          "obligations": [
+            {
+              "obligation_id": "o1",
+              "text": "run the suite"
+            },
+            {
+              "obligation_id": "o2",
+              "text": "already done",
+              "resolved": true
+            }
+          ],
+          "immediate_continuation": [
+            "rerun pytest"
+          ]
+        },
+        "live_tail_text": "[step 12] assistant: look\n\n[step 13] tool: out",
+        "replies": [
+          "bad",
+          "worse"
+        ]
+      },
+      "expected": {
+        "output": {
+          "carrier_edits": [],
+          "execution_context": {
+            "current_focus": [
+              "fix parser"
+            ],
+            "active_constraints": [
+              "no test edits"
+            ],
+            "obligations": [
+              {
+                "obligation_id": "o1",
+                "text": "run the suite",
+                "source_steps": [],
+                "resolved": false
+              },
+              {
+                "obligation_id": "o2",
+                "text": "already done",
+                "source_steps": [],
+                "resolved": true
+              }
+            ],
+            "immediate_continuation": [
+              "rerun pytest"
+            ]
+          },
+          "abstain_reason": "invalid_output"
+        },
+        "calls": 2
+      }
+    }
+  ]
+}
