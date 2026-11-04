@@ -35,6 +35,7 @@ uv run pytest                # tests
 uv run ruff check . && uv run ruff format .
 uv run python scripts/run_swebench.py --help
 uv run carrycode run --help                    # local CLI
+uv run python scripts/export_parity_fixtures.py   # after changing records/registry/validator/view
 ```
 
 ## Layout
@@ -49,7 +50,8 @@ uv run carrycode run --help                    # local CLI
 - `src/carrycode/grounder/`: verdict rules (`base.py`) and coding checks (files, git, tests)
 - `src/carrycode/llm.py`: JSON-output LLM calls for runtime roles, via LiteLLM
 - `configs/models/`: one YAML per model; `configs/experiments/`: one YAML per evaluated configuration
-- `scripts/`: SWE-bench runner, subset selection, summaries
+- `scripts/`: SWE-bench runner, subset selection, summaries, parity fixture export
+- `tests/fixtures/parity/`: generated cases that dsh-carryon (the TypeScript port) must reproduce; never edit by hand
 - `docs/decisions.md`: decision log. Add an entry when a design choice changes.
 - `docs/design/`: design docs for planned work (e.g. `dsh-plugin.md`, the DeepSeek Harness plugin)
 

@@ -1,0 +1,928 @@
+{
+  "format": 1,
+  "module": "registry",
+  "cases": [
+    {
+      "op": "make_carrier_id",
+      "name": "external plain path",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "src/a.py"
+      },
+      "expected": "external_object:src/a.py"
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "external /testbed/ prefix and whitespace",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "  /testbed/src/a.py \n"
+      },
+      "expected": "external_object:src/a.py"
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "external ./ prefix, double slash and ..",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "./src//b/../a.py"
+      },
+      "expected": "external_object:src/a.py"
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "external trailing slash and .",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "a/./b/"
+      },
+      "expected": "external_object:a/b"
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "external absolute path",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "/abs/x/../path.py"
+      },
+      "expected": "external_object:/abs/path.py"
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "external leading double slash is kept",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "//net/share"
+      },
+      "expected": "external_object://net/share"
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "external triple slash collapses",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "///x/y"
+      },
+      "expected": "external_object:/x/y"
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "external leading .. is kept",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "../up/x.py"
+      },
+      "expected": "external_object:../up/x.py"
+    },
+    {
+      "op": "make_carrier_id",
+      "name": ".. above an absolute root is dropped",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "/../a"
+      },
+      "expected": "external_object:/a"
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "external empty subject",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "   "
+      },
+      "expected": "external_object:."
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "external only /testbed/",
+      "input": {
+        "carrier_type": "external_object",
+        "subject": "/testbed/"
+      },
+      "expected": "external_object:."
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "information product collapses whitespace",
+      "input": {
+        "carrier_type": "information_product",
+        "subject": "  Root   cause\n of\tbug "
+      },
+      "expected": "information_product:Root cause of bug"
+    },
+    {
+      "op": "make_carrier_id",
+      "name": "situated state collapses whitespace",
+      "input": {
+        "carrier_type": "situated_state",
+        "subject": "branch\t main"
+      },
+      "expected": "situated_state:branch main"
+    },
+    {
+      "op": "materialize",
+      "name": "new carriers start at version 1",
+      "input": {
+        "store": [],
+        "edits": [
+          {
+            "candidate_id": "C1",
+            "carrier_type": "external_object",
+            "subject": "./src/a.py",
+            "summary": "edited a"
+          },
+          {
+            "candidate_id": "C2",
+            "carrier_type": "information_product",
+            "subject": "cause",
+            "summary": "found",
+            "conditions": [
+              "while x"
+            ],
+            "claims": [
+              {
+                "claim_id": "k1",
+                "proposition": "p",
+                "value": "v",
+                "source_steps": [
+                  3
+                ],
+                "evidence_refs": [
+                  "a.py:1"
+                ]
+              }
+            ]
+          }
+        ],
+        "fold_number": 1
+      },
+      "expected": [
+        {
+          "carrier_id": "external_object:src/a.py",
+          "version": 1,
+          "predecessor_version": null,
+          "carrier_type": "external_object",
+          "subject": "./src/a.py",
+          "summary": "edited a",
+          "conditions": [],
+          "claims": [],
+          "committed_at_fold": 1
+        },
+        {
+          "carrier_id": "information_product:cause",
+          "version": 1,
+          "predecessor_version": null,
+          "carrier_type": "information_product",
+          "subject": "cause",
+          "summary": "found",
+          "conditions": [
+            "while x"
+          ],
+          "claims": [
+            {
+              "claim_id": "k1",
+              "proposition": "p",
+              "value": "v",
+              "source_steps": [
+                3
+              ],
+              "evidence_refs": [
+                "a.py:1"
+              ],
+              "retracted": false
+            }
+          ],
+          "committed_at_fold": 1
+        }
+      ]
+    },
+    {
+      "op": "materialize",
+      "name": "update names the current version as predecessor",
+      "input": {
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          },
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 2,
+            "predecessor_version": 1,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s2",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 2
+          }
+        ],
+        "edits": [
+          {
+            "candidate_id": "C1",
+            "carrier_id": "external_object:src/a.py",
+            "base_version": 2,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s3"
+          }
+        ],
+        "fold_number": 3
+      },
+      "expected": [
+        {
+          "carrier_id": "external_object:src/a.py",
+          "version": 3,
+          "predecessor_version": 2,
+          "carrier_type": "external_object",
+          "subject": "src/a.py",
+          "summary": "s3",
+          "conditions": [],
+          "claims": [],
+          "committed_at_fold": 3
+        }
+      ]
+    },
+    {
+      "op": "materialize",
+      "name": "an edit without carrier_id for an existing subject still becomes a successor",
+      "input": {
+        "store": [
+          {
+            "carrier_id": "situated_state:branch",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "situated_state",
+            "subject": "branch",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "edits": [
+          {
+            "candidate_id": "C1",
+            "carrier_type": "situated_state",
+            "subject": "  branch ",
+            "summary": "on main"
+          }
+        ],
+        "fold_number": 2
+      },
+      "expected": [
+        {
+          "carrier_id": "situated_state:branch",
+          "version": 2,
+          "predecessor_version": 1,
+          "carrier_type": "situated_state",
+          "subject": "  branch ",
+          "summary": "on main",
+          "conditions": [],
+          "claims": [],
+          "committed_at_fold": 2
+        }
+      ]
+    },
+    {
+      "op": "materialize",
+      "name": "explicit carrier_id of an unknown carrier starts at version 1",
+      "input": {
+        "store": [],
+        "edits": [
+          {
+            "candidate_id": "C1",
+            "carrier_id": "custom:id",
+            "carrier_type": "information_product",
+            "subject": "x",
+            "summary": "s"
+          }
+        ],
+        "fold_number": 4
+      },
+      "expected": [
+        {
+          "carrier_id": "custom:id",
+          "version": 1,
+          "predecessor_version": null,
+          "carrier_type": "information_product",
+          "subject": "x",
+          "summary": "s",
+          "conditions": [],
+          "claims": [],
+          "committed_at_fold": 4
+        }
+      ]
+    },
+    {
+      "op": "apply",
+      "name": "new carrier at version 1",
+      "input": {
+        "store": [],
+        "records": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": {
+        "current": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "histories": {
+          "external_object:src/a.py": [
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s1",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "apply",
+      "name": "successor of the current version",
+      "input": {
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "records": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 2,
+            "predecessor_version": 1,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s2",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 2
+          }
+        ]
+      },
+      "expected": {
+        "current": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 2,
+            "predecessor_version": 1,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s2",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 2
+          }
+        ],
+        "histories": {
+          "external_object:src/a.py": [
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s1",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 1
+            },
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 2,
+              "predecessor_version": 1,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s2",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "apply",
+      "name": "two carriers in one commit",
+      "input": {
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          },
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 2,
+            "predecessor_version": 1,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s2",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 2
+          }
+        ],
+        "records": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 3,
+            "predecessor_version": 2,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s3",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 3
+          },
+          {
+            "carrier_id": "information_product:cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "cause",
+            "summary": "s",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": {
+        "current": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 3,
+            "predecessor_version": 2,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s3",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 3
+          },
+          {
+            "carrier_id": "information_product:cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "cause",
+            "summary": "s",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "histories": {
+          "external_object:src/a.py": [
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s1",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 1
+            },
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 2,
+              "predecessor_version": 1,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s2",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 2
+            },
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 3,
+              "predecessor_version": 2,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s3",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 3
+            }
+          ],
+          "information_product:cause": [
+            {
+              "carrier_id": "information_product:cause",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "information_product",
+              "subject": "cause",
+              "summary": "s",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "apply",
+      "name": "new carrier must start at version 1",
+      "input": {
+        "store": [],
+        "records": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 2,
+            "predecessor_version": 1,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s2",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 2
+          }
+        ]
+      },
+      "expected": {
+        "error": "new carrier external_object:src/a.py must start at version 1",
+        "current": [],
+        "histories": {
+          "external_object:src/a.py": []
+        }
+      }
+    },
+    {
+      "op": "apply",
+      "name": "new carrier must not name a predecessor",
+      "input": {
+        "store": [],
+        "records": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": 0,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ]
+      },
+      "expected": {
+        "error": "new carrier external_object:src/a.py must start at version 1",
+        "current": [],
+        "histories": {
+          "external_object:src/a.py": []
+        }
+      }
+    },
+    {
+      "op": "apply",
+      "name": "skipping a version is rejected",
+      "input": {
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "records": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 3,
+            "predecessor_version": 2,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s3",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 3
+          }
+        ]
+      },
+      "expected": {
+        "error": "carrier external_object:src/a.py: expected successor of v1, got v3 (predecessor 2)",
+        "current": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "histories": {
+          "external_object:src/a.py": [
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s1",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "apply",
+      "name": "wrong predecessor is rejected",
+      "input": {
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "records": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 2,
+            "predecessor_version": 0,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s2",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 2
+          }
+        ]
+      },
+      "expected": {
+        "error": "carrier external_object:src/a.py: expected successor of v1, got v2 (predecessor 0)",
+        "current": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "histories": {
+          "external_object:src/a.py": [
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s1",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "apply",
+      "name": "a failed commit writes nothing",
+      "input": {
+        "store": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "records": [
+          {
+            "carrier_id": "information_product:cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "cause",
+            "summary": "s",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          },
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 3,
+            "predecessor_version": 2,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s3",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 3
+          }
+        ]
+      },
+      "expected": {
+        "error": "carrier external_object:src/a.py: expected successor of v1, got v3 (predecessor 2)",
+        "current": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "histories": {
+          "external_object:src/a.py": [
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s1",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 1
+            }
+          ],
+          "information_product:cause": []
+        }
+      }
+    },
+    {
+      "op": "apply",
+      "name": "current keeps first-commit order",
+      "input": {
+        "store": [
+          {
+            "carrier_id": "information_product:cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "cause",
+            "summary": "s",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          },
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s1",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          }
+        ],
+        "records": [
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 2,
+            "predecessor_version": 1,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s2",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 2
+          }
+        ]
+      },
+      "expected": {
+        "current": [
+          {
+            "carrier_id": "information_product:cause",
+            "version": 1,
+            "predecessor_version": null,
+            "carrier_type": "information_product",
+            "subject": "cause",
+            "summary": "s",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 1
+          },
+          {
+            "carrier_id": "external_object:src/a.py",
+            "version": 2,
+            "predecessor_version": 1,
+            "carrier_type": "external_object",
+            "subject": "src/a.py",
+            "summary": "s2",
+            "conditions": [],
+            "claims": [],
+            "committed_at_fold": 2
+          }
+        ],
+        "histories": {
+          "external_object:src/a.py": [
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 1,
+              "predecessor_version": null,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s1",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 1
+            },
+            {
+              "carrier_id": "external_object:src/a.py",
+              "version": 2,
+              "predecessor_version": 1,
+              "carrier_type": "external_object",
+              "subject": "src/a.py",
+              "summary": "s2",
+              "conditions": [],
+              "claims": [],
+              "committed_at_fold": 2
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
