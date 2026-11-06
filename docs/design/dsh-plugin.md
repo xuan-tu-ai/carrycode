@@ -1,6 +1,7 @@
 # Design: CarryOn as a DeepSeek Harness compaction plugin (`dsh-carryon`)
 
-Status: proposal, not started. Owner: carrycode maintainers. Last checked against DeepSeek Harness (dsh)
+Status: implemented in [xuan-tu-ai/dsh-carryon](https://github.com/xuan-tu-ai/dsh-carryon); 0.1.0 released on npm
+on 2026-11-06 for dsh `0.2.2-alpha.3`. This document is the original proposal. Owner: carrycode maintainers. Last checked against DeepSeek Harness (dsh)
 `main` at `ce7073d5` (2026-10-30, CLI `0.2.2-alpha.2`).
 
 ## 1. Goal
