@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick start</a> · <a href="docs/usage.md">Usage</a> · <a href="docs/how-it-works.md">How it works</a> · <a href="#results-reported-in-the-paper">Paper results</a> · <a href="docs/usage.md#troubleshooting">Troubleshooting</a> · <a href="docs/research.md">For researchers</a>
+  <a href="#quick-start">Quick start</a> · <a href="docs/usage.md">Usage</a> · <a href="docs/how-it-works.md">How it works</a> · <a href="#use-it-in-deepseek-harness">DeepSeek Harness plugin</a> · <a href="#results-reported-in-the-paper">Paper results</a> · <a href="docs/usage.md#troubleshooting">Troubleshooting</a> · <a href="docs/research.md">For researchers</a>
 </p>
 
 https://github.com/user-attachments/assets/5f4a6889-5cf6-41a4-aff1-327a9d5d6b7b
@@ -70,6 +70,17 @@ the checkpoint, you see a line like `carryon: fold 1 committed`.
 
 CarryOn helps on **long** sessions. The first fold happens once the live tail reaches about 24,000 tokens, so a short
 task behaves exactly like plain mini-swe-agent. Keys, models, options and troubleshooting: [Usage](docs/usage.md).
+
+## Use it in DeepSeek Harness
+
+Prefer a Web UI or a desktop app? [**dsh-carryon**](https://github.com/xuan-tu-ai/dsh-carryon) is a TypeScript port of
+carrycode's CarryOn runtime as a compaction plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
+(dsh), [published on npm](https://www.npmjs.com/package/dsh-carryon). It folds long dsh sessions with the same
+Tracker, Compiler and Validator, checked against carrycode's parity fixtures, and adds a CarryOn mode to dsh's Web UI:
+
+```bash
+npx @deepseek-ai/dsh@0.2.2-alpha.3 plugin --profile web add dsh-carryon
+```
 
 ## Results reported in the paper
 
